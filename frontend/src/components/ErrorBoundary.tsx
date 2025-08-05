@@ -1,5 +1,6 @@
 import { Component, type ReactNode, type ErrorInfo } from 'react';
 import { AlertTriangle } from 'lucide-react';
+import { Button } from './Button';
 import { safeLog } from '../utils/logger';
 
 interface Props {
@@ -42,12 +43,12 @@ export class ErrorBoundary extends Component<Props, State> {
               We're sorry for the inconvenience. Our team has been notified.
               Please try refreshing the page or contact support if the issue persists.
             </p>
-            <button
+            <Button
               onClick={() => window.location.reload()}
-              className="px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-lg font-medium shadow-md"
+              size="lg"
             >
               Refresh Page
-            </button>
+            </Button>
             {this.state.error && (
               <div className="mt-6 p-4 bg-gray-50 rounded-lg text-left text-sm text-gray-700 overflow-auto max-h-48">
                 <h4 className="font-semibold mb-2">Error Details:</h4>

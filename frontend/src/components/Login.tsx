@@ -2,7 +2,9 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useTheme } from '../contexts/ThemeContext';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Mail, Lock, User, AlertCircle, Loader2, Eye, EyeOff, Sun, Moon, CheckCircle, BarChart3, Users } from 'lucide-react';
+import { Mail, Lock, User, AlertCircle, Eye, EyeOff, Sun, Moon, CheckCircle, BarChart3, Users } from 'lucide-react';
+import { AnimatedDiv } from './AnimatedDiv';
+import { Button } from './Button';
 
 export const Login = () => {
   const [email, setEmail] = useState('');
@@ -12,7 +14,7 @@ export const Login = () => {
   const [fullName, setFullName] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const { state, login, register, googleLogin, clearError } = useAuth();
-  const { theme, toggleTheme, isDark } = useTheme();
+  const { toggleTheme, isDark } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -54,21 +56,26 @@ export const Login = () => {
   return (
     <div className="min-h-screen flex overflow-hidden gradient-bg">
       {/* Theme Toggle Button */}
-      <button
+      <Button
         onClick={toggleTheme}
-        className="fixed top-6 right-6 z-50 btn btn-secondary rounded-full p-3 shadow-soft hover:shadow-md animate-fade-in"
+        className="fixed top-6 right-6 z-50 rounded-full p-3 shadow-soft hover:shadow-md animate-fade-in"
+        variant="secondary"
         aria-label="Toggle theme"
       >
         {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-      </button>
+      </Button>
 
       {/* Left side - Decorative */}
       <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-gradient-to-br from-primary-50 via-primary-100 to-secondary-100 dark:from-secondary-900 dark:via-secondary-800 dark:to-secondary-900">
         {/* Animated background elements */}
         <div className="absolute inset-0">
           <div className="absolute top-10 -left-10 w-72 h-72 bg-primary-200/20 dark:bg-primary-500/10 rounded-full blur-3xl animate-bounce-soft"></div>
-          <div className="absolute -bottom-20 right-0 w-96 h-96 bg-secondary-200/15 dark:bg-secondary-500/10 rounded-full blur-3xl animate-bounce-soft" style={{animationDelay: '2s'}}></div>
-          <div className="absolute top-1/2 left-1/4 w-64 h-64 bg-primary-300/20 dark:bg-primary-600/10 rounded-full blur-2xl animate-bounce-soft" style={{animationDelay: '1s'}}></div>
+          <AnimatedDiv className="absolute -bottom-20 right-0 w-96 h-96 bg-secondary-200/15 dark:bg-secondary-500/10 rounded-full blur-3xl animate-bounce-soft" animationDelay="2s">
+            <div></div>
+          </AnimatedDiv>
+          <AnimatedDiv className="absolute top-1/2 left-1/4 w-64 h-64 bg-primary-300/20 dark:bg-primary-600/10 rounded-full blur-2xl animate-bounce-soft" animationDelay="1s">
+            <div></div>
+          </AnimatedDiv>
         </div>
 
         <div className="relative z-10 flex flex-col justify-center items-center p-8 w-full h-full text-secondary-800 dark:text-secondary-100 animate-slide-up">
@@ -108,7 +115,7 @@ export const Login = () => {
           </div>
 
           {/* Stats Card */}
-          <div className="glass p-6 rounded-2xl shadow-soft w-full max-w-sm animate-slide-up" style={{animationDelay: '0.3s'}}>
+          <AnimatedDiv className="glass p-6 rounded-2xl shadow-soft w-full max-w-sm animate-slide-up" animationDelay="0.3s">
             <div className="text-center mb-4">
               <div className="text-sm mb-1 text-secondary-600 dark:text-secondary-300">Total Managed Funds</div>
               <div className="text-3xl font-bold text-gradient">$1.2M+</div>
@@ -123,13 +130,13 @@ export const Login = () => {
                 <div className="text-xs text-secondary-500 dark:text-secondary-400">Satisfaction</div>
               </div>
             </div>
-          </div>
+          </AnimatedDiv>
         </div>
       </div>
 
       {/* Right side - Form */}
       <div className="flex-1 flex flex-col justify-center items-center p-4 lg:p-8 overflow-y-auto">
-        <div className="w-full max-w-md animate-slide-up" style={{animationDelay: '0.2s'}}>
+        <AnimatedDiv className="w-full max-w-md animate-slide-up" animationDelay="0.2s">
           {/* Logo for mobile */}
           <div className="lg:hidden text-center mb-6">
             <div className="bg-gradient-to-r from-primary-600 to-primary-500 text-white rounded-2xl p-3 w-12 h-12 flex items-center justify-center mx-auto mb-3 shadow-soft">
@@ -246,10 +253,11 @@ export const Login = () => {
                 </div>
 
                 {/* Submit Button */}
-                <button
+                <Button
                   type="submit"
                   disabled={state.isLoading || !email || !password || (isRegister && (!username || !fullName))}
-                  className="w-full btn btn-primary py-3 mt-6"
+                  className="w-full py-3 mt-6"
+                  variant="primary"
                 >
                   {state.isLoading ? (
                     <div className="flex items-center justify-center">
@@ -259,7 +267,7 @@ export const Login = () => {
                   ) : (
                     isRegister ? 'Create Account' : 'Sign In'
                   )}
-                </button>
+                </Button>
 
                 {/* Google Login */}
                 <div className="mt-4">
@@ -272,11 +280,12 @@ export const Login = () => {
                     </div>
                   </div>
 
-                  <button
+                  <Button
                     type="button"
                     onClick={handleGoogleLogin}
                     disabled={state.isLoading}
-                    className="w-full btn btn-secondary mt-4 py-3"
+                    className="w-full mt-4 py-3"
+                    variant="secondary"
                   >
                     <svg className="w-4 h-4 mr-2" viewBox="0 0 24 24">
                       <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -285,7 +294,7 @@ export const Login = () => {
                       <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
                     </svg>
                     Google
-                  </button>
+                  </Button>
                 </div>
 
                 {/* Toggle Form Type */}
@@ -308,7 +317,7 @@ export const Login = () => {
               </form>
             </div>
           </div>
-        </div>
+        </AnimatedDiv>
       </div>
     </div>
   );

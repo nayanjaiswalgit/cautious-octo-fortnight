@@ -1,7 +1,7 @@
 import React, { type ReactNode, useEffect, useRef, useState } from 'react';
 import { X, Maximize2, Minimize2 } from 'lucide-react';
 
-interface FormModalProps {
+interface _FormModalProps<_T = unknown> {
   isOpen: boolean;
   onClose: () => void;
   title: string;
@@ -9,12 +9,12 @@ interface FormModalProps {
   size?: 'sm' | 'md' | 'lg' | 'xl';
   closeOnBackdrop?: boolean;
   showFullscreenToggle?: boolean;
-  onSubmit?: (data: any) => Promise<void>;
-  fields?: any[];
-  initialData?: any;
+  onSubmit?: (data: _T) => Promise<void>;
+  fields?: unknown[];
+  initialData?: _T;
 }
 
-export const FormModal: React.FC<FormModalProps> = ({
+export const FormModal = <_T,>({
   isOpen,
   onClose,
   title,
@@ -120,11 +120,6 @@ export const FormModal: React.FC<FormModalProps> = ({
           isFullscreen ? 'h-[calc(100vh-80px)] p-8' : 'max-h-[calc(90vh-120px)] p-6'
         }`}>
           {children}
-        </div>
-        
-        {/* Progress indicator for forms */}
-        <div className="absolute bottom-0 left-0 right-0 h-1 theme-bg-secondary">
-          <div className="h-full bg-gradient-to-r from-blue-500 to-purple-500 transition-all duration-300" style={{width: '60%'}}></div>
         </div>
       </div>
     </div>)}

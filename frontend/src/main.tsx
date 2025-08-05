@@ -10,15 +10,15 @@ const queryClient = new QueryClient({
     queries: {
       staleTime: 5 * 60 * 1000, // 5 minutes
       gcTime: 10 * 60 * 1000, // 10 minutes
-      retry: (failureCount, error: any) => {
+      retry: (failureCount, error: unknown) => {
         // Don't retry on auth errors
-        if (error?.response?.status === 401) return false;
+        if ((error as { response?: { status?: number } })?.response?.status === 401) return false;
         return failureCount < 3;
       },
     },
     mutations: {
-      retry: (failureCount, error: any) => {
-        if (error?.response?.status === 401) return false;
+      retry: (failureCount, error: unknown) => {
+        if ((error as { response?: { status?: number } })?.response?.status === 401) return false;
         return failureCount < 2;
       },
     },

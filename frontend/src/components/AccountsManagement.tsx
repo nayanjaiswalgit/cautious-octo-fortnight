@@ -24,6 +24,9 @@ import { MoreOptions } from './MoreOptions';
 import { useCurrency } from '../hooks/useCurrency';
 import { TagInput } from './TagInput';
 import { useTags } from '../hooks/useTags';
+import { Button } from './Button';
+import { Input } from './Input';
+import { Select } from './Select';
 import type { Account } from '../types';
 
 interface AccountFormData {
@@ -188,20 +191,22 @@ export const AccountsManagement = () => {
             </div>
           </div>
           <div className="mt-6 lg:mt-0 flex items-center space-x-3">
-            <button
+            <Button
               onClick={() => setShowBalances(!showBalances)}
-              className="flex items-center px-4 py-2 bg-white/20 backdrop-blur-sm text-white rounded-lg hover:bg-white/30 transition-colors text-sm"
+              variant="ghost-white"
+              size="sm"
             >
               {showBalances ? <EyeOff className="w-4 h-4 mr-2" /> : <Eye className="w-4 h-4 mr-2" />}
               {showBalances ? 'Hide' : 'Show'} Balances
-            </button>
-            <button
+            </Button>
+            <Button
               onClick={() => setShowAddModal(true)}
-              className="flex items-center px-6 py-2 bg-white text-blue-600 rounded-lg hover:bg-gray-100 transition-colors font-medium text-sm"
+              variant="primary"
+              size="sm"
             >
               <Plus className="w-4 h-4 mr-2" />
               Add Account
-            </button>
+            </Button>
           </div>
         </div>
       </div>
@@ -291,15 +296,16 @@ export const AccountsManagement = () => {
               </div>
               <div className="flex items-center space-x-2">
                 {(selectedAccountFilter || selectedTagFilter) && (
-                  <button
+                  <Button
                     onClick={() => {
                       setSelectedAccountFilter(null);
                       setSelectedTagFilter(null);
                     }}
-                    className="px-3 py-1 text-sm bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 rounded-lg hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors"
+                    size="sm"
+                    variant="secondary"
                   >
                     Clear Filters
-                  </button>
+                  </Button>
                 )}
               </div>
             </div>
@@ -313,12 +319,12 @@ export const AccountsManagement = () => {
                 <CreditCard className="w-20 h-20 text-gray-300 mx-auto mb-6" />
                 <h3 className="text-xl font-medium text-gray-900 mb-3">No accounts yet</h3>
                 <p className="text-gray-600 mb-6">Add your first account to start tracking your finances</p>
-                <button
+                <Button
                   onClick={() => setShowAddModal(true)}
-                  className="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 transition-colors text-lg font-medium shadow-md"
+                  size="lg"
                 >
                   Add Your First Account
-                </button>
+                </Button>
               </div>
             ) : (
               <div className="divide-y divide-gray-200 dark:divide-gray-700">
@@ -384,7 +390,7 @@ export const AccountsManagement = () => {
                           )}
                           
                           <div className="flex items-center space-x-2">
-                            <button
+                            <Button
                               onClick={() => {
                                 setEditingAccount(account);
                                 setFormData({
@@ -398,18 +404,20 @@ export const AccountsManagement = () => {
                                 });
                                 setShowAddModal(true);
                               }}
-                              className="p-2 text-gray-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-full transition-colors"
+                              variant="ghost"
+                              size="sm"
                               title="Edit account"
                             >
                               <Edit2 className="w-5 h-5" />
-                            </button>
-                            <button
+                            </Button>
+                            <Button
                               onClick={() => handleDelete(account)}
-                              className="p-2 text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-full transition-colors"
+                              variant="ghost"
+                              size="sm"
                               title="Delete account"
                             >
                               <Trash2 className="w-5 h-5" />
-                            </button>
+                            </Button>
                           </div>
                         </div>
                       </div>
@@ -434,13 +442,12 @@ export const AccountsManagement = () => {
                   {selectedAccountFilter && ` for ${state.accounts.find(acc => acc.id === selectedAccountFilter)?.name}`}
                 </p>
               </div>
-              <button
+              <Button
                 onClick={() => setShowUploadModal(true)}
-                className="inline-flex items-center px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors shadow-md"
               >
                 <UploadIcon className="w-4 h-4 mr-2" />
                 Upload Statement
-              </button>
+              </Button>
             </div>
           </div>
           
@@ -481,55 +488,35 @@ export const AccountsManagement = () => {
         }}
       >
         <form onSubmit={handleSubmit} className="space-y-5 p-6">
-          <div>
-            <label className="theme-form-label mb-2">
-              Account Name <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              required
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="theme-input"
-              placeholder="e.g., Chase Checking, Savings Account"
-            />
-          </div>
+          <Input
+            label="Account Name"
+            type="text"
+            required
+            value={formData.name}
+            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            placeholder="e.g., Chase Checking, Savings Account"
+          />
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            <div>
-              <label className="theme-form-label mb-2">
-                Account Type <span className="text-red-500">*</span>
-              </label>
-              <select
-                required
-                value={formData.account_type}
-                onChange={(e) => setFormData({ ...formData, account_type: e.target.value as any })}
-                className="theme-input"
-              >
-                {accountTypes.map((type) => (
-                  <option key={type.value} value={type.value}>
-                    {type.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-          </div>
-
-          <div>
-            <label className="theme-form-label mb-2">
-              Initial Balance <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="number"
-              step="0.01"
+            <Select
+              label="Account Type"
               required
-              value={formData.balance}
-              onChange={(e) => setFormData({ ...formData, balance: e.target.value })}
-              className="theme-input"
-              placeholder="0.00"
+              value={formData.account_type}
+              onChange={(e) => setFormData({ ...formData, account_type: e.target.value as AccountFormData['account_type'] })}
+              options={accountTypes.map((type) => ({ value: type.value, label: type.label }))}
             />
+
           </div>
+
+          <Input
+            label="Initial Balance"
+            type="number"
+            step="0.01"
+            required
+            value={formData.balance}
+            onChange={(e) => setFormData({ ...formData, balance: e.target.value })}
+            placeholder="0.00"
+          />
 
           <div>
             <label className="theme-form-label mb-2">
@@ -568,37 +555,27 @@ export const AccountsManagement = () => {
                 label="Currency"
               />
               
-              <div>
-                <label className="theme-form-label">
-                  Institution
-                </label>
-                <input
-                  type="text"
-                  value={formData.institution}
-                  onChange={(e) => setFormData({ ...formData, institution: e.target.value })}
-                  className="theme-input"
-                  placeholder="e.g., Chase Bank, Wells Fargo"
-                />
-              </div>
+              <Input
+                label="Institution"
+                type="text"
+                value={formData.institution}
+                onChange={(e) => setFormData({ ...formData, institution: e.target.value })}
+                placeholder="e.g., Chase Bank, Wells Fargo"
+              />
 
-              <div>
-                <label className="theme-form-label">
-                  Account Number (Last 4 digits)
-                </label>
-                <input
-                  type="text"
-                  maxLength={4}
-                  value={formData.account_number_last4}
-                  onChange={(e) => setFormData({ ...formData, account_number_last4: e.target.value.replace(/\D/g, '') })}
-                  className="theme-input"
-                  placeholder="1234"
-                />
-              </div>
+              <Input
+                label="Account Number (Last 4 digits)"
+                type="text"
+                maxLength={4}
+                value={formData.account_number_last4}
+                onChange={(e) => setFormData({ ...formData, account_number_last4: e.target.value.replace(/\D/g, '') })}
+                placeholder="1234"
+              />
             </MoreOptions>
           )}
 
           <div className="flex justify-end space-x-3 pt-6 border-t border-gray-200">
-            <button
+            <Button
               type="button"
               onClick={() => {
                 setShowAddModal(false);
@@ -606,17 +583,18 @@ export const AccountsManagement = () => {
                 resetForm();
                 setShowAdvancedFields(false);
               }}
-              className="px-6 py-3 text-gray-600 hover:text-gray-800 transition-colors font-medium rounded-lg"
+              variant="secondary"
+              size="lg"
             >
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
               type="submit"
               disabled={isSubmitting}
-              className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium shadow-md"
+              size="lg"
             >
               {isSubmitting ? 'Saving...' : editingAccount ? 'Update Account' : 'Add Account'}
-            </button>
+            </Button>
           </div>
         </form>
       </Modal>

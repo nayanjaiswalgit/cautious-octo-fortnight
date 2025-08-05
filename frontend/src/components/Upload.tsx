@@ -4,6 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import { apiClient } from '../api/client';
 import type { Account } from '../types';
 import { Modal } from './Modal';
+import { Button } from './Button';
+import { Input } from './Input';
 
 interface UploadedFile {
   id: string;
@@ -43,28 +45,27 @@ const PasswordPrompt = ({ filename, onSubmit, onCancel }: PasswordPromptProps) =
           The file "{filename}" is password protected. Please enter the password to continue.
         </p>
         <form onSubmit={handleSubmit}>
-          <input
+          <Input
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="Enter PDF password"
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4"
             autoFocus
           />
           <div className="flex justify-end space-x-3">
-            <button
+            <Button
               type="button"
               onClick={onCancel}
-              className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50"
+              variant="secondary"
+              size="md"
             >
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
               type="submit"
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
             >
               Upload
-            </button>
+            </Button>
           </div>
         </form>
       </div>
@@ -88,12 +89,12 @@ export const Upload = () => {
     try {
       const sessions = await apiClient.getUploadSessions();
       
-      const existingFiles: UploadedFile[] = sessions.map((session: any) => ({
+      const existingFiles: UploadedFile[] = (sessions as any[]).map((session: any) => ({
         id: session.id.toString(),
         name: session.filename,
         size: session.file_size || 0,
         type: 'pdf',
-        status: session.status,
+        status: session.status as 'processing' | 'completed' | 'error',
         transactions: session.processed_transactions,
         errors: session.error_message ? [session.error_message] : undefined,
         session_id: session.id,
@@ -110,11 +111,11 @@ export const Upload = () => {
   const loadAccounts = useCallback(async () => {
     try {
       const accountsData = await apiClient.getAccounts();
-      setAccounts(accountsData);
+      setAccounts(accountsData as Account[]);
       
       // Set default account if accounts exist
       if (accountsData.length > 0 && !selectedAccountId) {
-        setSelectedAccountId(accountsData[0].id);
+        setSelectedAccountId((accountsData as Account[])[0].id);
       }
     } catch (error) {
       console.error('Failed to load accounts:', error);
@@ -139,13 +140,13 @@ export const Upload = () => {
 
   const pollUploadStatus = useCallback(async (sessionId: number, fileId: string) => {
     try {
-      const statusResponse = await apiClient.getUploadStatus(sessionId);
+      const statusResponse = await apiClient.getUploadStatus(sessionId) as any;
       
       setFiles(prev => prev.map(f => 
         f.id === fileId 
           ? {
               ...f,
-              status: statusResponse.status,
+              status: statusResponse.status as 'processing' | 'completed' | 'error',
               transactions: statusResponse.processed_transactions,
               errors: statusResponse.error_message ? [statusResponse.error_message] : undefined
             }
@@ -169,7 +170,7 @@ export const Upload = () => {
 
   const uploadFileToAPI = async (file: File, password?: string): Promise<UploadedFile> => {
     try {
-      const response = await apiClient.uploadFile(file, password, selectedAccountId || undefined);
+      const response = await apiClient.uploadFile(file, password, selectedAccountId || undefined) as any;
 
       const uploadedFile = {
         id: response.session_id.toString(),
@@ -290,11 +291,11 @@ export const Upload = () => {
       // Get all transactions from this upload session
       const transactions = await apiClient.getTransactions({
         upload_session: showAccountChangeModal.sessionId
-      });
+      }) as any;
       
       if (transactions.results && transactions.results.length > 0) {
-        const transactionIds = transactions.results.map(t => Number(t.id));
-        const result = await apiClient.bulkUpdateTransactionAccount(transactionIds, newAccountId);
+        const transactionIds = transactions.results.map((t: any) => Number(t.id));
+        const result = await apiClient.bulkUpdateTransactionAccount(transactionIds, newAccountId) as any;
         
         alert(`Successfully updated ${result.updated_count} transactions to account: ${result.account_name}`);
         
@@ -327,7 +328,7 @@ export const Upload = () => {
     }
 
     try {
-      await apiClient.updateUploadSession(sessionId, { filename: editingFileName.trim() });
+      await apiClient.updateUploadSession(sessionId, { filename: editingFileName.trim() }) as any;
       
       // Update local state
       setFiles(prev => prev.map(f => 
@@ -482,21 +483,15 @@ export const Upload = () => {
 
       {/* Account Selection */}
       <div className="bg-white border border-gray-200 rounded-lg p-4">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Select Account for Transactions
-        </label>
-        <select
+        <Select
+          label="Select Account for Transactions"
           value={selectedAccountId || ''}
           onChange={(e) => setSelectedAccountId(e.target.value ? Number(e.target.value) : null)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-        >
-          <option value="">Select an account...</option>
-          {accounts.map((account) => (
-            <option key={account.id} value={account.id}>
-              {account.name} ({account.account_type}) - ${parseFloat(account.balance || '0').toFixed(2)}
-            </option>
-          ))}
-        </select>
+          options={[
+            { value: "", label: "Select an account..." },
+            ...accounts.map((account) => ({ value: account.id, label: `${account.name} (${account.account_type}) - ${parseFloat(account.balance || '0').toFixed(2)}` }))
+          ]}
+        />
         {accounts.length === 0 && (
           <p className="text-sm text-gray-500 mt-1">
             No accounts available. Please create an account first.
@@ -567,7 +562,7 @@ export const Upload = () => {
                         <div className="flex items-center space-x-2 mb-1">
                           {editingFileId === file.id ? (
                             <div className="flex items-center space-x-2 flex-1">
-                              <input
+                              <Input
                                 type="text"
                                 value={editingFileName}
                                 onChange={(e) => setEditingFileName(e.target.value)}
@@ -578,35 +573,36 @@ export const Upload = () => {
                                     cancelEditing();
                                   }
                                 }}
-                                className="flex-1 text-sm font-semibold text-gray-900 bg-white border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
                                 autoFocus
                               />
-                              <button
-                                onClick={() => saveFileName(file.id, file.session_id!)}
-                                className="p-1 text-green-600 hover:bg-green-50 rounded"
-                                title="Save"
-                              >
-                                <Check className="h-4 w-4" />
-                              </button>
-                              <button
-                                onClick={cancelEditing}
-                                className="p-1 text-gray-400 hover:bg-gray-50 rounded"
-                                title="Cancel"
-                              >
-                                <X className="h-4 w-4" />
-                              </button>
+                              <Button
+                            onClick={() => saveFileName(file.id, file.session_id!)}
+                            variant="ghost"
+                            size="sm"
+                          >
+                            <Check className="h-4 w-4" />
+                          </Button>
+                              <Button
+                            onClick={cancelEditing}
+                            variant="ghost"
+                            size="sm"
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
                             </div>
                           ) : (
                             <div className="flex items-center space-x-2 flex-1">
                               <p className="text-sm font-semibold text-gray-900 truncate">{file.name}</p>
                               {file.session_id && (
-                                <button
+                                <Button
                                   onClick={() => startEditing(file.id, file.name)}
-                                  className="p-1 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded opacity-0 group-hover:opacity-100 transition-opacity"
+                                  variant="ghost"
+                                  size="sm"
+                                  className="opacity-0 group-hover:opacity-100 transition-opacity"
                                   title="Rename file"
                                 >
                                   <Edit3 className="h-3 w-3" />
-                                </button>
+                                </Button>
                               )}
                             </div>
                           )}
@@ -653,7 +649,7 @@ export const Upload = () => {
                     <div className="flex items-center space-x-3">
                       {file.status === 'completed' && file.session_id && (
                         <>
-                          <button
+                          <Button
                             onClick={() => {
                               const currentAccount = file.account_name || 'Unknown Account';
                               setShowAccountChangeModal({
@@ -662,30 +658,33 @@ export const Upload = () => {
                               });
                               setNewAccountId(file.account_id || null);
                             }}
-                            className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors duration-200"
+                            variant="ghost"
+                            size="sm"
                             title="Change account for transactions"
                           >
                             <Settings className="h-4 w-4" />
-                          </button>
-                          <button
+                          </Button>
+                          <Button
                             onClick={() => {
                               // Navigate to statement viewer for this upload session
                               navigate(`/statement-viewer?upload_session=${file.session_id}`);
                             }}
-                            className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200"
+                            variant="ghost"
+                            size="sm"
                             title="View statement in Excel-like viewer"
                           >
                             <Eye className="h-4 w-4" />
-                          </button>
+                          </Button>
                         </>
                       )}
-                      <button
+                      <Button
                         onClick={() => handleDeleteFile(file.id)}
-                        className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200"
+                        variant="ghost"
+                        size="sm"
                         title="Delete file"
                       >
                         <Trash2 className="h-4 w-4" />
-                      </button>
+                      </Button>
                       {getStatusIcon(file.status)}
                     </div>
                   </div>
@@ -745,22 +744,22 @@ export const Upload = () => {
             </div>
             
             <div className="flex justify-end space-x-3">
-              <button
+              <Button
                 onClick={() => {
                   setShowAccountChangeModal(null);
                   setNewAccountId(null);
                 }}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                variant="secondary"
+                size="md"
               >
                 Cancel
-              </button>
-              <button
+              </Button>
+              <Button
                 onClick={handleAccountChange}
                 disabled={!newAccountId}
-                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Change Account
-              </button>
+              </Button>
             </div>
           </div>
         )}

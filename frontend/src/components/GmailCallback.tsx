@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { apiClient } from "../api/client";
 import { LoadingSpinner } from "./LoadingSpinner";
 import { CheckCircle, XCircle } from "lucide-react";
+import { Button } from "./Button";
 
 const GmailCallback: React.FC = () => {
   const navigate = useNavigate();
@@ -44,12 +45,12 @@ const GmailCallback: React.FC = () => {
         } else {
           throw new Error(result.error || "Unknown error occurred");
         }
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error("OAuth callback error:", error);
         setStatus("error");
         setMessage(
-          error.response?.data?.error ||
-            error.message ||
+          (error as { response?: { data?: { error?: string } } })?.response?.data?.error ||
+            (error as Error)?.message ||
             "Failed to connect Gmail account"
         );
         setTimeout(() => navigate("/gmail"), 3000);
@@ -97,12 +98,11 @@ const GmailCallback: React.FC = () => {
             <p className="text-sm text-gray-500 mt-4">
               Redirecting you back to Gmail settings...
             </p>
-            <button
+            <Button
               onClick={() => navigate("/gmail")}
-              className="mt-4 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
             >
               Go Back
-            </button>
+            </Button>
           </>
         )}
       </div>

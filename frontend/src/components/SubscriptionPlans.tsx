@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Crown, Check, Zap, Shield, Star, CreditCard } from 'lucide-react';
+import { Button } from './Button';
 import { apiClient } from '../api/client';
 import { useToast } from './Toast';
 
@@ -201,18 +202,12 @@ export const SubscriptionPlans: React.FC = () => {
               ))}
             </div>
             
-            <button
+            <Button
               onClick={() => upgradePlan(plan.plan_type)}
               disabled={upgrading || isCurrentPlan(plan.plan_type) || !canUpgrade(plan.plan_type)}
-              className={`w-full py-3 px-4 rounded-lg font-medium transition-colors ${
-                isCurrentPlan(plan.plan_type)
-                  ? 'bg-gray-100 text-gray-500 cursor-not-allowed'
-                  : canUpgrade(plan.plan_type)
-                  ? plan.plan_type === 'premium'
-                    ? 'bg-purple-600 hover:bg-purple-700 text-white'
-                    : 'bg-blue-600 hover:bg-blue-700 text-white'
-                  : 'bg-gray-100 text-gray-500 cursor-not-allowed'
-              }`}
+              className="w-full"
+              variant={isCurrentPlan(plan.plan_type) ? 'secondary' : (canUpgrade(plan.plan_type) ? (plan.plan_type === 'premium' ? 'info' : 'primary') : 'secondary')}
+              size="lg"
             >
               {upgrading ? (
                 <div className="flex items-center justify-center">
@@ -226,7 +221,7 @@ export const SubscriptionPlans: React.FC = () => {
               ) : (
                 'Downgrade Not Available'
               )}
-            </button>
+            </Button>
           </div>
         ))}
       </div>

@@ -1,8 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from './Toast';
 import { apiClient } from '../api/client';
+import { Button } from './Button';
+import { Select } from './Select';
+import { CurrencyField } from './CurrencyField';
 import { Save } from 'lucide-react';
+import { Button } from './Button';
+import { Select } from './Select';
 
 const PreferencesSettings: React.FC = () => {
   const { state: authState, updateUser } = useAuth();
@@ -56,49 +61,32 @@ const PreferencesSettings: React.FC = () => {
       <form onSubmit={handleProfileUpdate} className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label className="theme-form-label mb-2">
-              Preferred Currency
-            </label>
-            <select
+            <Select
+              label="Preferred Currency"
               value={profileData.preferred_currency}
               onChange={(e) => setProfileData(prev => ({ ...prev, preferred_currency: e.target.value }))}
-              className="theme-select"
-            >
-              {currencies.map(currency => (
-                <option key={currency.code} value={currency.code}>
-                  {currency.symbol} {currency.name} ({currency.code})
-                </option>
-              ))}
-            </select>
+              options={currencies.map(currency => ({ value: currency.code, label: `${currency.symbol} ${currency.name} (${currency.code})` }))}
+            />
           </div>
 
           <div>
-            <label className="theme-form-label mb-2">
-              Date Format
-            </label>
-            <select
+            <Select
+              label="Date Format"
               value={profileData.preferred_date_format}
               onChange={(e) => setProfileData(prev => ({ ...prev, preferred_date_format: e.target.value }))}
-              className="theme-select"
-            >
-              {dateFormats.map(format => (
-                <option key={format.value} value={format.value}>
-                  {format.label}
-                </option>
-              ))}
-            </select>
+              options={dateFormats}
+            />
           </div>
         </div>
 
         <div className="flex justify-end">
-          <button
+          <Button
             type="submit"
             disabled={isLoading}
-            className="theme-btn-primary flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Save className="h-5 w-5" />
             <span>{isLoading ? 'Saving...' : 'Save Changes'}</span>
-          </button>
+          </Button>
         </div>
       </form>
     </div>

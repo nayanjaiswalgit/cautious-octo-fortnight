@@ -63,9 +63,9 @@ const DataSettings: React.FC = () => {
       window.URL.revokeObjectURL(url);
       
       showSuccess('Report Downloaded', `Your financial report has been downloaded in ${format.toUpperCase()} format`);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Export failed:', error);
-      const errorMessage = error?.response?.data?.detail || error?.message || 'Unknown error occurred';
+      const errorMessage = (error as { response?: { data?: { detail?: string } } })?.response?.data?.detail || (error as Error)?.message || 'Unknown error occurred';
       showError('Export Failed', `Unable to generate report: ${errorMessage}`);
     } finally {
       setIsLoading(false);
@@ -148,7 +148,7 @@ const DataSettings: React.FC = () => {
             ].map(({ format, icon, label }) => (
               <button
                 key={format}
-                onClick={() => format === 'json' ? handleDataExport() : handleExportReport(format as any)}
+                onClick={() => format === 'json' ? handleDataExport() : handleExportReport(format)}
                 disabled={isLoading}
                 className="p-4 text-left theme-border border rounded-lg hover:border-green-500 hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors duration-200 disabled:opacity-50 flex items-center space-x-4"
               >

@@ -3,6 +3,9 @@ import { Zap, FileText, Download, Eye, Trash2, Plus, Sparkles } from 'lucide-rea
 import { apiClient } from '../api/client';
 import { useToast } from './Toast';
 import { Modal } from './Modal';
+import { Button } from './Button';
+import { Input } from './Input';
+import { Select } from './Select';
 
 interface Invoice {
   id: number;
@@ -57,13 +60,13 @@ export const AIInvoiceGenerator: React.FC = () => {
   useEffect(() => {
     fetchInvoices();
     fetchSubscription();
-  }, []);
+  }, [fetchInvoices]);
 
   const fetchInvoices = async () => {
     try {
       const response = await apiClient.get('/invoices/');
       setInvoices(response.data.results || response.data);
-    } catch (error) {
+    } catch {
       showError('Failed to load invoices');
     } finally {
       setLoading(false);
@@ -74,7 +77,7 @@ export const AIInvoiceGenerator: React.FC = () => {
     try {
       const response = await apiClient.get('/subscriptions/current/');
       setSubscription(response.data);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Failed to load subscription:', error);
     }
   };
@@ -123,8 +126,9 @@ export const AIInvoiceGenerator: React.FC = () => {
       }
 
       showSuccess('Invoice generated successfully with AI!');
-    } catch (error: any) {
-      showError(error.response?.data?.error || 'Failed to generate invoice');
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { error?: string } } };
+      showError(err.response?.data?.error || 'Failed to generate invoice');
     } finally {
       setGenerating(false);
     }
@@ -137,7 +141,7 @@ export const AIInvoiceGenerator: React.FC = () => {
         inv.id === invoiceId ? response.data : inv
       ));
       showSuccess('Invoice marked as paid');
-    } catch (error) {
+    } catch {
       showError('Failed to mark invoice as paid');
     }
   };
@@ -149,7 +153,7 @@ export const AIInvoiceGenerator: React.FC = () => {
       await apiClient.delete(`/invoices/${invoiceId}/`);
       setInvoices(invoices.filter(inv => inv.id !== invoiceId));
       showSuccess('Invoice deleted successfully');
-    } catch (error) {
+    } catch {
       showError('Failed to delete invoice');
     }
   };
@@ -194,13 +198,12 @@ export const AIInvoiceGenerator: React.FC = () => {
             </div>
           )}
           
-          <button
+          <Button
             onClick={() => setShowCreateModal(true)}
-            className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
             <Plus className="w-4 h-4 mr-2" />
             Generate Invoice
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -306,13 +309,12 @@ export const AIInvoiceGenerator: React.FC = () => {
           <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">No invoices yet</h3>
           <p className="text-gray-600 mb-4">Generate your first AI-powered invoice to get started</p>
-          <button
+          <Button
             onClick={() => setShowCreateModal(true)}
-            className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
             <Sparkles className="w-4 h-4 mr-2" />
             Generate with AI
-          </button>
+          </Button>
         </div>
       )}
 
@@ -328,113 +330,80 @@ export const AIInvoiceGenerator: React.FC = () => {
             </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Client Name *
-            </label>
-            <input
-              type="text"
-              value={formData.client_name}
-              onChange={(e) => setFormData({...formData, client_name: e.target.value})}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              required
-            />
-          </div>
+          <Input
+            label="Client Name"
+            type="text"
+            value={formData.client_name}
+            onChange={(e) => setFormData({...formData, client_name: e.target.value})}
+            required
+          />
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Client Email
-            </label>
-            <input
-              type="email"
-              value={formData.client_email}
-              onChange={(e) => setFormData({...formData, client_email: e.target.value})}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-          </div>
+          <Input
+            label="Client Email"
+            type="email"
+            value={formData.client_email}
+            onChange={(e) => setFormData({...formData, client_email: e.target.value})}
+          />
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Service/Product Description *
-            </label>
-            <textarea
-              value={formData.description}
-              onChange={(e) => setFormData({...formData, description: e.target.value})}
-              rows={3}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Describe the services or products being invoiced..."
-              required
-            />
-          </div>
+          <Input
+            label="Service/Product Description"
+            as="textarea"
+            value={formData.description}
+            onChange={(e) => setFormData({...formData, description: e.target.value})}
+            rows={3}
+            placeholder="Describe the services or products being invoiced..."
+            required
+          />
 
           <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Amount *
-              </label>
-              <input
-                type="number"
-                step="0.01"
-                value={formData.amount}
-                onChange={(e) => setFormData({...formData, amount: e.target.value})}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                required
-              />
-            </div>
+            <Input
+              label="Amount"
+              type="number"
+              step="0.01"
+              value={formData.amount}
+              onChange={(e) => setFormData({...formData, amount: e.target.value})}
+              required
+            />
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Tax Amount
-              </label>
-              <input
-                type="number"
-                step="0.01"
-                value={formData.tax_amount}
-                onChange={(e) => setFormData({...formData, tax_amount: e.target.value})}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Due Date
-            </label>
-            <input
-              type="date"
-              value={formData.due_date}
-              onChange={(e) => setFormData({...formData, due_date: e.target.value})}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            <Input
+              label="Tax Amount"
+              type="number"
+              step="0.01"
+              value={formData.tax_amount}
+              onChange={(e) => setFormData({...formData, tax_amount: e.target.value})}
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Invoice Type
-            </label>
-            <select
-              value={formData.invoice_type}
-              onChange={(e) => setFormData({...formData, invoice_type: e.target.value})}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="invoice">Invoice</option>
-              <option value="bill">Bill</option>
-              <option value="receipt">Receipt</option>
-              <option value="estimate">Estimate</option>
-            </select>
-          </div>
+          <Input
+            label="Due Date"
+            type="date"
+            value={formData.due_date}
+            onChange={(e) => setFormData({...formData, due_date: e.target.value})}
+          />
+
+          <Select
+            label="Invoice Type"
+            value={formData.invoice_type}
+            onChange={(e) => setFormData({...formData, invoice_type: e.target.value})}
+            options={[
+              { value: "invoice", label: "Invoice" },
+              { value: "bill", label: "Bill" },
+              { value: "receipt", label: "Receipt" },
+              { value: "estimate", label: "Estimate" },
+            ]}
+          />
 
           <div className="flex justify-end space-x-3 pt-4">
-            <button
+            <Button
               onClick={() => setShowCreateModal(false)}
-              className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+              variant="ghost"
             >
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
               onClick={generateInvoiceWithAI}
               disabled={generating || !formData.client_name || !formData.description || !formData.amount}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors flex items-center"
+              className="flex items-center"
             >
               {generating ? (
                 <>
@@ -447,7 +416,7 @@ export const AIInvoiceGenerator: React.FC = () => {
                   Generate with AI
                 </>
               )}
-            </button>
+            </Button>
           </div>
         </div>
       </Modal>
@@ -461,12 +430,11 @@ export const AIInvoiceGenerator: React.FC = () => {
           />
         </div>
         <div className="flex justify-end pt-4">
-          <button
+          <Button
             onClick={() => setShowPreview(false)}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           >
             Close Preview
-          </button>
+          </Button>
         </div>
       </Modal>
     </div>

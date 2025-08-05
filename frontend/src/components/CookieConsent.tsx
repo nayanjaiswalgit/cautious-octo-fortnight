@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, Cookie } from 'lucide-react';
+import { Button } from './Button';
 
 export const CookieConsent: React.FC = () => {
   const [showBanner, setShowBanner] = useState(false);
@@ -44,18 +45,19 @@ export const CookieConsent: React.FC = () => {
                 You can accept all cookies or reject non-essential ones.
               </p>
               <div className="flex flex-wrap gap-3">
-                <button
+                <Button
                   onClick={acceptCookies}
-                  className="px-6 py-3 bg-blue-600 text-white text-base rounded-lg hover:bg-blue-700 transition-colors shadow-md"
+                  size="lg"
                 >
                   Accept All
-                </button>
-                <button
+                </Button>
+                <Button
                   onClick={rejectCookies}
-                  className="px-6 py-3 bg-gray-100 text-gray-700 text-base rounded-lg hover:bg-gray-200 transition-colors shadow-sm"
+                  variant="secondary"
+                  size="lg"
                 >
                   Reject Non-Essential
-                </button>
+                </Button>
                 <a
                   href="/privacy-policy"
                   className="px-6 py-3 text-blue-600 text-base underline hover:text-blue-700 flex items-center"
@@ -65,13 +67,13 @@ export const CookieConsent: React.FC = () => {
               </div>
             </div>
           </div>
-          <button
+          <Button
             onClick={rejectCookies}
-            className="p-2 text-gray-400 hover:text-gray-600 rounded-full transition-colors"
+            variant="ghost"
             aria-label="Close cookie banner"
           >
             <X className="h-6 w-6" />
-          </button>
+          </Button>
         </div>
       </div>
     </div>

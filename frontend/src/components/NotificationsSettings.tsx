@@ -3,6 +3,8 @@ import { useAuth } from '../contexts/AuthContext';
 import { useToast } from './Toast';
 import { apiClient } from '../api/client';
 import { Save } from 'lucide-react';
+import { Button } from './Button';
+import { Checkbox } from './Checkbox';
 
 const NotificationsSettings: React.FC = () => {
   const { state: authState, updateUser } = useAuth();
@@ -35,15 +37,11 @@ const NotificationsSettings: React.FC = () => {
       
       <form onSubmit={handleProfileUpdate} className="space-y-6">
         <div className="space-y-4">
-          <label className="flex items-center p-4 theme-bg-secondary rounded-lg theme-border border shadow-sm">
-            <input
-              type="checkbox"
-              checked={profileData.enable_notifications}
-              onChange={(e) => setProfileData(prev => ({ ...prev, enable_notifications: e.target.checked }))}
-              className="h-5 w-5 text-blue-600 dark:text-blue-400 theme-border rounded focus:ring-2 focus:ring-blue-500/20"
-            />
-            <span className="ml-4 text-lg font-medium theme-text-primary">Enable Email Notifications</span>
-          </label>
+          <Checkbox
+            label="Enable Email Notifications"
+            checked={profileData.enable_notifications}
+            onChange={(e) => setProfileData(prev => ({ ...prev, enable_notifications: e.target.checked }))}
+          />
           
           <p className="text-sm theme-text-secondary ml-9">
             Receive notifications about account activity, transaction updates, and important alerts directly to your email.
@@ -51,14 +49,13 @@ const NotificationsSettings: React.FC = () => {
         </div>
 
         <div className="flex justify-end">
-          <button
+          <Button
             type="submit"
             disabled={isLoading}
-            className="theme-btn-primary flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Save className="h-5 w-5" />
             <span>{isLoading ? 'Saving...' : 'Save Changes'}</span>
-          </button>
+          </Button>
         </div>
       </form>
     </div>

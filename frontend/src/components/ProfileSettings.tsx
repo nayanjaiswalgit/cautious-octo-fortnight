@@ -3,6 +3,10 @@ import { useAuth } from '../contexts/AuthContext';
 import { useToast } from './Toast';
 import { apiClient } from '../api/client';
 import { User, Camera, Save } from 'lucide-react';
+import { Button } from './Button';
+import { Input } from './Input';
+import { Button } from './Button';
+import { Input } from './Input';
 
 const ProfileSettings: React.FC = () => {
   const { state: authState, updateUser } = useAuth();
@@ -81,7 +85,11 @@ const ProfileSettings: React.FC = () => {
               <User className="h-12 w-12 theme-text-muted" />
             )}
           </div>
-          <label className="absolute -bottom-1 -right-1 bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white rounded-full p-2 cursor-pointer transition-colors duration-200 shadow-md">
+          <Button
+            as="label"
+            variant="circle"
+            className="absolute -bottom-1 -right-1 cursor-pointer"
+          >
             <Camera className="h-4 w-4" />
             <input
               type="file"
@@ -89,7 +97,7 @@ const ProfileSettings: React.FC = () => {
               onChange={handleProfilePictureUpload}
               className="hidden"
             />
-          </label>
+          </Button>
         </div>
         <div>
           <h3 className="text-xl font-semibold theme-text-primary">{profileData.full_name || 'Your Name'}</h3>
@@ -101,42 +109,31 @@ const ProfileSettings: React.FC = () => {
       {/* Profile Form */}
       <form onSubmit={handleProfileUpdate} className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label className="theme-form-label mb-2">
-              Full Name
-            </label>
-            <input
-              type="text"
-              value={profileData.full_name}
-              onChange={(e) => setProfileData(prev => ({ ...prev, full_name: e.target.value }))}
-              className="theme-input"
-              placeholder="Your full name"
-            />
-          </div>
+          <Input
+            label="Full Name"
+            type="text"
+            value={profileData.full_name}
+            onChange={(e) => setProfileData(prev => ({ ...prev, full_name: e.target.value }))}
+            placeholder="Your full name"
+          />
 
-          <div>
-            <label className="theme-form-label mb-2">
-              Email Address
-            </label>
-            <input
-              type="email"
-              value={profileData.email}
-              onChange={(e) => setProfileData(prev => ({ ...prev, email: e.target.value }))}
-              className="theme-input"
-              placeholder="your.email@example.com"
-            />
-          </div>
+          <Input
+            label="Email Address"
+            type="email"
+            value={profileData.email}
+            onChange={(e) => setProfileData(prev => ({ ...prev, email: e.target.value }))}
+            placeholder="your.email@example.com"
+          />
         </div>
 
         <div className="flex justify-end">
-          <button
+          <Button
             type="submit"
             disabled={isLoading}
-            className="theme-btn-primary flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Save className="h-5 w-5" />
             <span>{isLoading ? 'Saving...' : 'Save Changes'}</span>
-          </button>
+          </Button>
         </div>
       </form>
     </div>

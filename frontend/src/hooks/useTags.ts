@@ -14,7 +14,7 @@ export interface UseTagsReturn {
   addTagToEntity: (entityId: string, tag: string) => Promise<void>;
   removeTagFromEntity: (entityId: string, tag: string) => Promise<void>;
   setEntityTags: (entityId: string, tags: string[]) => Promise<void>;
-  getEntitiesByTag: (tag: string) => Promise<any[]>;
+  getEntitiesByTag: (tag: string) => Promise<Record<string, unknown>[]>;
 }
 
 export const useTags = (): UseTagsReturn => {
@@ -26,8 +26,8 @@ export const useTags = (): UseTagsReturn => {
     try {
       setIsLoading(true);
       setError(null);
-      const response = await apiClient.get('/entities/all-tags/');
-      setAllTags(response.data);
+      const response = await apiClient.get('/entities/all-tags/') as any;
+      setAllTags((response as any).data as TagWithCount[]);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch tags');
       console.error('Error fetching tags:', err);
@@ -68,8 +68,8 @@ export const useTags = (): UseTagsReturn => {
 
   const getEntitiesByTag = useCallback(async (tag: string) => {
     try {
-      const response = await apiClient.get(`/entities/by-tag/?tag=${encodeURIComponent(tag)}`);
-      return response.data;
+      const response = await apiClient.get(`/entities/by-tag/?tag=${encodeURIComponent(tag)}`) as any;
+      return (response as any).data as Record<string, unknown>[];
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch entities by tag');
       throw err;

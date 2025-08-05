@@ -124,23 +124,25 @@ export const TagInput: React.FC<TagInputProps> = ({
             <Tag size={12} className="mr-1" />
             <span>{tag}</span>
             {!disabled && (
-              <button
+              <Button
                 type="button"
                 onClick={(e) => {
                   e.stopPropagation();
                   removeTag(tag);
                 }}
-                className="ml-1 hover:text-blue-600"
+                variant="ghost"
+                size="sm"
+                className="ml-1"
               >
                 <X size={12} />
-              </button>
+              </Button>
             )}
           </div>
         ))}
         
         {/* Input field */}
         {!disabled && tags.length < maxTags && (
-          <input
+          <Input
             ref={inputRef}
             type="text"
             value={inputValue}
@@ -153,14 +155,15 @@ export const TagInput: React.FC<TagInputProps> = ({
         
         {/* Add button */}
         {!disabled && inputValue.trim() && (
-          <button
+          <Button
             type="button"
             onClick={() => addTag(inputValue)}
-            className="text-blue-600 hover:text-blue-800 p-1"
+            variant="ghost"
+            size="icon"
             title="Add tag"
           >
             <Plus size={16} />
-          </button>
+          </Button>
         )}
       </div>
 
@@ -168,18 +171,18 @@ export const TagInput: React.FC<TagInputProps> = ({
       {showSuggestions && filteredSuggestions.length > 0 && (
         <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-48 overflow-y-auto">
           {filteredSuggestions.map((suggestion, index) => (
-            <button
+            <Button
               key={suggestion}
               type="button"
               onClick={() => handleSuggestionClick(suggestion)}
-              className={`
-                w-full text-left px-3 py-2 hover:bg-gray-100 flex items-center
-                ${index === selectedSuggestionIndex ? 'bg-blue-50 text-blue-600' : ''}
-              `}
+              variant="ghost"
+              className={`w-full text-left flex items-center ${
+                index === selectedSuggestionIndex ? 'bg-blue-50 text-blue-600' : ''
+              }`}
             >
               <Tag size={14} className="mr-2 text-gray-400" />
               {suggestion}
-            </button>
+            </Button>
           ))}
         </div>
       )}

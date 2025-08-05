@@ -1,5 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Save, AlertCircle, DollarSign, Calendar, Tag, FileText } from 'lucide-react';
+import { Button } from './Button';
+import { Card } from './Card';
+import { Checkbox } from './Checkbox';
+import { Input } from './Input';
+import { Select } from './Select';
 import { useToast } from './Toast';
 
 export const TransactionSettings: React.FC = () => {
@@ -80,7 +85,7 @@ export const TransactionSettings: React.FC = () => {
 
       <form onSubmit={handleSaveSettings} className="space-y-8">
         {/* Default Settings */}
-        <div className="theme-card p-6">
+        <Card>
           <h2 className="text-xl font-semibold theme-text-primary mb-4 flex items-center">
             <DollarSign className="h-5 w-5 mr-2" />
             Default Transaction Settings
@@ -88,185 +93,146 @@ export const TransactionSettings: React.FC = () => {
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="theme-form-label mb-2">
-                Default Transaction Source
-              </label>
-              <select
+              <Select
+                label="Default Transaction Source"
                 value={settings.default_transaction_source}
                 onChange={(e) => setSettings({ ...settings, default_transaction_source: e.target.value })}
-                className="theme-select"
-              >
-                <option value="manual">Manual Entry</option>
-                <option value="pdf_import">PDF Import</option>
-                <option value="csv_import">CSV Import</option>
-                <option value="api">API Integration</option>
-              </select>
+                options={[
+                  { value: 'manual', label: 'Manual Entry' },
+                  { value: 'pdf_import', label: 'PDF Import' },
+                  { value: 'csv_import', label: 'CSV Import' },
+                  { value: 'api', label: 'API Integration' },
+                ]}
+              />
             </div>
 
             <div>
-              <label className="theme-form-label mb-2">
-                Default Tags (comma-separated)
-              </label>
-              <input
+              <Input
+                label="Default Tags (comma-separated)"
                 type="text"
                 value={settings.default_tags}
                 onChange={(e) => setSettings({ ...settings, default_tags: e.target.value })}
-                className="theme-select"
                 placeholder="e.g., expense, business, personal"
               />
             </div>
           </div>
-        </div>
+        </Card>
 
         {/* Automation Settings */}
-        <div className="theme-card p-6">
+        <Card>
           <h2 className="text-xl font-semibold theme-text-primary mb-4 flex items-center">
             <Tag className="h-5 w-5 mr-2" />
             Automation & Processing
           </h2>
           
           <div className="space-y-4">
-            <label className="flex items-center">
-              <input
-                type="checkbox"
-                checked={settings.auto_categorize_transactions}
-                onChange={(e) => setSettings({ ...settings, auto_categorize_transactions: e.target.checked })}
-                className="rounded theme-border theme-bg-secondary focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
-              />
-              <span className="ml-3 text-sm text-gray-700">Auto-categorize transactions using machine learning</span>
-            </label>
+            <Checkbox
+              label="Auto-categorize transactions using machine learning"
+              checked={settings.auto_categorize_transactions}
+              onChange={(e) => setSettings({ ...settings, auto_categorize_transactions: e.target.checked })}
+            />
 
-            <label className="flex items-center">
-              <input
-                type="checkbox"
-                checked={settings.require_verification}
-                onChange={(e) => setSettings({ ...settings, require_verification: e.target.checked })}
-                className="rounded theme-border theme-bg-secondary focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
-              />
-              <span className="ml-3 text-sm text-gray-700">Require manual verification for imported transactions</span>
-            </label>
+            <Checkbox
+              label="Require manual verification for imported transactions"
+              checked={settings.require_verification}
+              onChange={(e) => setSettings({ ...settings, require_verification: e.target.checked })}
+            />
 
-            <label className="flex items-center">
-              <input
-                type="checkbox"
-                checked={settings.enable_transaction_suggestions}
-                onChange={(e) => setSettings({ ...settings, enable_transaction_suggestions: e.target.checked })}
-                className="rounded theme-border theme-bg-secondary focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
-              />
-              <span className="ml-3 text-sm text-gray-700">Show smart suggestions for similar transactions</span>
-            </label>
+            <Checkbox
+              label="Show smart suggestions for similar transactions"
+              checked={settings.enable_transaction_suggestions}
+              onChange={(e) => setSettings({ ...settings, enable_transaction_suggestions: e.target.checked })}
+            />
 
-            <label className="flex items-center">
-              <input
-                type="checkbox"
-                checked={settings.auto_mark_transfers}
-                onChange={(e) => setSettings({ ...settings, auto_mark_transfers: e.target.checked })}
-                className="rounded theme-border theme-bg-secondary focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
-              />
-              <span className="ml-3 text-sm text-gray-700">Automatically detect and mark transfers between accounts</span>
-            </label>
+            <Checkbox
+              label="Automatically detect and mark transfers between accounts"
+              checked={settings.auto_mark_transfers}
+              onChange={(e) => setSettings({ ...settings, auto_mark_transfers: e.target.checked })}
+            />
           </div>
 
           <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="theme-form-label mb-2">
-                Minimum Transfer Amount ($)
-              </label>
-              <input
+              <Input
+                label="Minimum Transfer Amount ($)"
                 type="number"
                 min="0"
                 step="0.01"
                 value={settings.minimum_transfer_amount}
                 onChange={(e) => setSettings({ ...settings, minimum_transfer_amount: parseFloat(e.target.value) || 0 })}
-                className="theme-select"
                 placeholder="0.00"
               />
             </div>
           </div>
-        </div>
+        </Card>
 
         {/* Duplicate Detection */}
-        <div className="theme-card p-6">
+        <Card>
           <h2 className="text-xl font-semibold theme-text-primary mb-4 flex items-center">
             <AlertCircle className="h-5 w-5 mr-2" />
             Duplicate Detection
           </h2>
           
           <div className="space-y-4">
-            <label className="flex items-center">
-              <input
-                type="checkbox"
-                checked={settings.duplicate_detection_enabled}
-                onChange={(e) => setSettings({ ...settings, duplicate_detection_enabled: e.target.checked })}
-                className="rounded theme-border theme-bg-secondary focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
-              />
-              <span className="ml-3 text-sm text-gray-700">Enable duplicate transaction detection</span>
-            </label>
+            <Checkbox
+              label="Enable duplicate transaction detection"
+              checked={settings.duplicate_detection_enabled}
+              onChange={(e) => setSettings({ ...settings, duplicate_detection_enabled: e.target.checked })}
+            />
 
             {settings.duplicate_detection_enabled && (
               <div>
-                <label className="theme-form-label mb-2">
-                  Detection Window (days)
-                </label>
-                <select
+                <Select
+                  label="Detection Window (days)"
                   value={settings.duplicate_detection_days}
                   onChange={(e) => setSettings({ ...settings, duplicate_detection_days: parseInt(e.target.value) })}
-                  className="w-full md:w-48 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                >
-                  <option value={1}>1 day</option>
-                  <option value={3}>3 days</option>
-                  <option value={7}>7 days</option>
-                  <option value={14}>14 days</option>
-                  <option value={30}>30 days</option>
-                </select>
+                  options={[
+                    { value: 1, label: '1 day' },
+                    { value: 3, label: '3 days' },
+                    { value: 7, label: '7 days' },
+                    { value: 14, label: '14 days' },
+                    { value: 30, label: '30 days' },
+                  ]}
+                />
                 <p className="text-xs text-gray-500 mt-1">
                   Look for duplicates within this time window
                 </p>
               </div>
             )}
           </div>
-        </div>
+        </Card>
 
         {/* Receipt Processing */}
-        <div className="theme-card p-6">
+        <Card>
           <h2 className="text-xl font-semibold theme-text-primary mb-4 flex items-center">
             <Calendar className="h-5 w-5 mr-2" />
             Receipt Processing
           </h2>
           
           <div className="space-y-4">
-            <label className="flex items-center">
-              <input
-                type="checkbox"
-                checked={settings.enable_receipt_scanning}
-                onChange={(e) => setSettings({ ...settings, enable_receipt_scanning: e.target.checked })}
-                className="rounded theme-border theme-bg-secondary focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
-              />
-              <span className="ml-3 text-sm text-gray-700">Enable receipt scanning and OCR processing</span>
-            </label>
+            <Checkbox
+              label="Enable receipt scanning and OCR processing"
+              checked={settings.enable_receipt_scanning}
+              onChange={(e) => setSettings({ ...settings, enable_receipt_scanning: e.target.checked })}
+            />
 
-            <label className="flex items-center">
-              <input
-                type="checkbox"
-                checked={settings.auto_create_from_receipts}
-                onChange={(e) => setSettings({ ...settings, auto_create_from_receipts: e.target.checked })}
-                className="rounded theme-border theme-bg-secondary focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
-              />
-              <span className="ml-3 text-sm text-gray-700">Automatically create transactions from processed receipts</span>
-            </label>
+            <Checkbox
+              label="Automatically create transactions from processed receipts"
+              checked={settings.auto_create_from_receipts}
+              onChange={(e) => setSettings({ ...settings, auto_create_from_receipts: e.target.checked })}
+            />
           </div>
-        </div>
+        </Card>
 
         {/* Action Buttons */}
         <div className="flex justify-end">
-          <button
-            type="submit"
-            disabled={loading}
-            className="theme-btn-primary flex items-center space-x-2 disabled:opacity-50"
-          >
-            <Save className="h-4 w-4" />
-            <span>{loading ? 'Saving...' : 'Save Settings'}</span>
-          </button>
+          <Button
+          type="submit"
+          disabled={loading}
+        >
+          <Save className="h-4 w-4" />
+          <span>{loading ? 'Saving...' : 'Save Settings'}</span>
+        </Button>
         </div>
       </form>
     </div>

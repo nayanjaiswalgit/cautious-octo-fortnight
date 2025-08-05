@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Plus, Minus, ShoppingCart, Star, Zap, Settings, 
-  CreditCard, Users, Database, Shield, Crown, Check,
+  Users, Database, Shield, Crown, Check,
   TrendingUp, Package, Sparkles, Calculator
 } from 'lucide-react';
 import { apiClient } from '../api/client';
 import { useToast } from './Toast';
-import { Modal } from './Modal';
+import { Button } from './Button';
+import { Card } from './Card';
 
 interface PlanAddon {
   id: number;
@@ -24,11 +25,19 @@ interface PlanAddon {
   max_quantity: number;
 }
 
+interface BasePlan {
+  id: number;
+  name: string;
+  price: string;
+  ai_credits_per_month: number;
+  max_transactions_per_month: number;
+}
+
 interface PlanTemplate {
   id: number;
   name: string;
   description: string;
-  base_plan: any;
+  base_plan: BasePlan;
   template_addons: Array<{
     addon: PlanAddon;
     quantity: number;
@@ -41,7 +50,7 @@ interface PlanTemplate {
 }
 
 interface CustomizationPreview {
-  base_plan: any;
+  base_plan: BasePlan;
   addons: Array<{
     addon: PlanAddon;
     quantity: number;
@@ -56,15 +65,18 @@ interface CustomizationPreview {
   };
 }
 
+interface SubscriptionPlan extends BasePlan {
+  // Add any other properties specific to SubscriptionPlan if they exist
+}
+
 export const PlanCustomizer: React.FC = () => {
-  const [subscriptionPlans, setSubscriptionPlans] = useState<any[]>([]);
+  const [subscriptionPlans, setSubscriptionPlans] = useState<SubscriptionPlan[]>([]);
   const [addons, setAddons] = useState<PlanAddon[]>([]);
   const [templates, setTemplates] = useState<PlanTemplate[]>([]);
-  const [selectedPlan, setSelectedPlan] = useState<any | null>(null);
+  const [selectedPlan, setSelectedPlan] = useState<BasePlan | null>(null);
   const [selectedAddons, setSelectedAddons] = useState<Record<number, number>>({});
   const [preview, setPreview] = useState<CustomizationPreview | null>(null);
   const [loading, setLoading] = useState(true);
-  const [showTemplates, setShowTemplates] = useState(false);
   const [activeTab, setActiveTab] = useState<'build' | 'templates'>('build');
   const { showSuccess, showError, ToastContainer } = useToast();
 
@@ -220,28 +232,24 @@ export const PlanCustomizer: React.FC = () => {
       <div className="flex justify-center mb-8">
         <div className="border-b border-gray-200">
           <nav className="-mb-px flex space-x-8">
-            <button
+            <Button
               onClick={() => setActiveTab('build')}
-              className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                activeTab === 'build'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
+              variant={activeTab === 'build' ? 'primary' : 'ghost'}
+              size="sm"
+              className="py-2 px-1 border-b-2 rounded-none"
             >
               <Calculator className="w-4 h-4 inline-block mr-2" />
               Build Custom Plan
-            </button>
-            <button
+            </Button>
+            <Button
               onClick={() => setActiveTab('templates')}
-              className={`py-2 px-1 border-b-2 font-medium text-sm ${
-                activeTab === 'templates'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
+              variant={activeTab === 'templates' ? 'primary' : 'ghost'}
+              size="sm"
+              className="py-2 px-1 border-b-2 rounded-none"
             >
               <Star className="w-4 h-4 inline-block mr-2" />
               Pre-built Templates
-            </button>
+            </Button>
           </nav>
         </div>
       </div>
@@ -254,14 +262,10 @@ export const PlanCustomizer: React.FC = () => {
               <h2 className="text-xl font-semibold text-gray-900 mb-4">1. Choose Base Plan</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {subscriptionPlans.map((plan) => (
-                  <div
+                  <Card
                     key={plan.id}
                     onClick={() => setSelectedPlan(plan)}
-                    className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
-                      selectedPlan?.id === plan.id
-                        ? 'border-blue-500 bg-blue-50'
-                        : 'border-gray-200 hover:border-gray-300'
-                    }`}
+                    className={`cursor-pointer ${selectedPlan?.id === plan.id ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-300'}`}
                   >
                     <div className="flex justify-between items-start mb-2">
                       <h3 className="font-semibold text-gray-900">{plan.name}</h3>
@@ -276,13 +280,13 @@ export const PlanCustomizer: React.FC = () => {
                         <span className="text-sm font-medium">Selected</span>
                       </div>
                     )}
-                  </div>
+                  </Card>
                 ))}
               </div>
             </div>
 
             {/* Add-ons Selection */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <Card>
               <h2 className="text-xl font-semibold text-gray-900 mb-4">2. Add Optional Features</h2>
               
               {Object.entries(getAddonsByCategory()).map(([category, categoryAddons]) => (
@@ -311,97 +315,99 @@ export const PlanCustomizer: React.FC = () => {
                         </div>
                         
                         <div className="flex items-center space-x-3">
-                          <button
+                          <Button
                             onClick={() => updateAddonQuantity(addon.id, -1)}
                             disabled={(selectedAddons[addon.id] || 0) <= 0}
-                            className="p-1 rounded-full border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                            variant="ghost"
+                            size="icon"
+                            className="rounded-full"
                           >
                             <Minus className="w-4 h-4" />
-                          </button>
+                          </Button>
                           
                           <span className="w-8 text-center font-medium">
                             {selectedAddons[addon.id] || 0}
                           </span>
                           
-                          <button
+                          <Button
                             onClick={() => updateAddonQuantity(addon.id, 1)}
                             disabled={(selectedAddons[addon.id] || 0) >= addon.max_quantity}
-                            className="p-1 rounded-full border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                            variant="ghost"
+                            size="icon"
+                            className="rounded-full"
                           >
                             <Plus className="w-4 h-4" />
-                          </button>
+                          </Button>
                         </div>
                       </div>
                     ))}
                   </div>
                 </div>
               ))}
-            </div>
+            </Card>
           </div>
 
           {/* Preview Panel */}
           <div className="lg:col-span-1">
-            <div className="sticky top-8">
-              <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                  <Sparkles className="w-5 h-5 mr-2 text-blue-600" />
-                  Plan Preview
-                </h3>
-                
-                {preview && (
-                  <div className="space-y-4">
-                    <div className="pb-4 border-b border-gray-200">
-                      <h4 className="font-medium text-gray-900 mb-2">{preview.base_plan.name}</h4>
-                      <div className="text-3xl font-bold text-blue-600 mb-1">
-                        ${preview.totals.monthly_cost.toFixed(2)}
-                        <span className="text-sm font-normal text-gray-500">/month</span>
-                      </div>
+            <Card className="sticky top-8">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                <Sparkles className="w-5 h-5 mr-2 text-blue-600" />
+                Plan Preview
+              </h3>
+              
+              {preview && (
+                <div className="space-y-4">
+                  <div className="pb-4 border-b border-gray-200">
+                    <h4 className="font-medium text-gray-900 mb-2">{preview.base_plan.name}</h4>
+                    <div className="text-3xl font-bold text-blue-600 mb-1">
+                      ${preview.totals.monthly_cost.toFixed(2)}
+                      <span className="text-sm font-normal text-gray-500">/month</span>
                     </div>
-                    
-                    <div className="space-y-3">
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">AI Credits</span>
-                        <span className="font-medium">{preview.totals.ai_credits.toLocaleString()}/month</span>
-                      </div>
-                      
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Transactions</span>
-                        <span className="font-medium">{preview.totals.transactions_limit.toLocaleString()}/month</span>
-                      </div>
-                      
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Accounts</span>
-                        <span className="font-medium">{preview.totals.accounts_limit}</span>
-                      </div>
-                    </div>
-                    
-                    {preview.addons.length > 0 && (
-                      <div className="pt-4 border-t border-gray-200">
-                        <h5 className="font-medium text-gray-900 mb-2">Add-ons</h5>
-                        <div className="space-y-2">
-                          {preview.addons.map((item, index) => (
-                            <div key={index} className="flex justify-between text-sm">
-                              <span className="text-gray-600">
-                                {item.addon.name} x{item.quantity}
-                              </span>
-                              <span className="font-medium">+${item.monthly_cost.toFixed(2)}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                    
-                    <button
-                      onClick={applyCustomization}
-                      className="w-full mt-6 bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center"
-                    >
-                      <ShoppingCart className="w-4 h-4 mr-2" />
-                      Apply Customization
-                    </button>
                   </div>
-                )}
-              </div>
-            </div>
+                  
+                  <div className="space-y-3">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">AI Credits</span>
+                      <span className="font-medium">{preview.totals.ai_credits.toLocaleString()}/month</span>
+                    </div>
+                    
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Transactions</span>
+                      <span className="font-medium">{preview.totals.transactions_limit.toLocaleString()}/month</span>
+                    </div>
+                    
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Accounts</span>
+                      <span className="font-medium">{preview.totals.accounts_limit}</span>
+                    </div>
+                  </div>
+                  
+                  {preview.addons.length > 0 && (
+                    <div className="pt-4 border-t border-gray-200">
+                      <h5 className="font-medium text-gray-900 mb-2">Add-ons</h5>
+                      <div className="space-y-2">
+                        {preview.addons.map((item, index) => (
+                          <div key={index} className="flex justify-between text-sm">
+                            <span className="text-gray-600">
+                              {item.addon.name} x{item.quantity}
+                            </span>
+                            <span className="font-medium">+${item.monthly_cost.toFixed(2)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  
+                  <Button
+                    onClick={applyCustomization}
+                    className="w-full mt-6 flex items-center justify-center"
+                  >
+                    <ShoppingCart className="w-4 h-4 mr-2" />
+                    Apply Customization
+                  </Button>
+                </div>
+              )}
+            </Card>
           </div>
         </div>
       ) : (
@@ -452,12 +458,12 @@ export const PlanCustomizer: React.FC = () => {
                 ))}
               </div>
               
-              <button
+              <Button
                 onClick={() => applyTemplate(template)}
-                className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors"
+                className="w-full"
               >
                 Apply Template
-              </button>
+              </Button>
             </div>
           ))}
         </div>

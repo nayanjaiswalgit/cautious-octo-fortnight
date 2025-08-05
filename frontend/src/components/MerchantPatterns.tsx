@@ -2,8 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
 import { LoadingSpinner } from './LoadingSpinner';
 import { FormModal } from './FormModal';
+import { Button } from './Button';
+import { Input } from './Input';
+import { Select } from './Select';
 import { StatusBadge } from './StatusBadge';
 import { apiClient } from '../api/client';
+import type { Category } from '../types';
 
 interface MerchantPattern {
   id: number;
@@ -19,9 +23,18 @@ interface MerchantPattern {
   created_at: string;
 }
 
+interface MerchantPatternFormData {
+  pattern: FormDataEntryValue | null;
+  merchant_name: FormDataEntryValue | null;
+  kind: FormDataEntryValue | null;
+  category: number;
+  confidence: number;
+  is_active: boolean;
+}
+
 const MerchantPatterns: React.FC = () => {
   const [patterns, setPatterns] = useState<MerchantPattern[]>([]);
-  const [categories, setCategories] = useState<any[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingPattern, setEditingPattern] = useState<MerchantPattern | null>(null);
@@ -37,7 +50,7 @@ const MerchantPatterns: React.FC = () => {
     try {
       const response = await apiClient.getMerchantPatterns();
       setPatterns(response);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error loading merchant patterns:', error);
       toast.error('Failed to load merchant patterns');
     } finally {
@@ -49,21 +62,22 @@ const MerchantPatterns: React.FC = () => {
     try {
       const response = await apiClient.getCategories();
       setCategories(response);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error loading categories:', error);
     }
   };
 
-  const createPattern = async (data: any) => {
+  const createPattern = async (data: MerchantPatternFormData) => {
     try {
       await apiClient.createMerchantPattern(data);
       toast.success('Merchant pattern created successfully!');
       setShowCreateModal(false);
       loadPatterns();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error creating pattern:', error);
-      if (error.response?.data) {
-        const errorMessages = Object.values(error.response.data).flat();
+      const err = error as { response?: { data?: Record<string, string[]> } };
+      if (err.response?.data) {
+        const errorMessages = Object.values(err.response.data).flat();
         toast.error(errorMessages.join(', '));
       } else {
         toast.error('Failed to create merchant pattern');
@@ -71,7 +85,7 @@ const MerchantPatterns: React.FC = () => {
     }
   };
 
-  const updatePattern = async (data: any) => {
+  const updatePattern = async (data: MerchantPatternFormData) => {
     if (!editingPattern) return;
     
     try {
@@ -79,10 +93,11 @@ const MerchantPatterns: React.FC = () => {
       toast.success('Merchant pattern updated successfully!');
       setEditingPattern(null);
       loadPatterns();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error updating pattern:', error);
-      if (error.response?.data) {
-        const errorMessages = Object.values(error.response.data).flat();
+      const err = error as { response?: { data?: Record<string, string[]> } };
+      if (err.response?.data) {
+        const errorMessages = Object.values(err.response.data).flat();
         toast.error(errorMessages.join(', '));
       } else {
         toast.error('Failed to update merchant pattern');
@@ -142,56 +157,47 @@ const MerchantPatterns: React.FC = () => {
             Manage patterns to automatically recognize merchants and improve transaction categorization
           </p>
         </div>
-        <button
+        <Button
           onClick={() => setShowCreateModal(true)}
-          className="flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700"
+          size="sm"
         >
           ➕ Add Pattern
-        </button>
+        </Button>
       </div>
 
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="flex-1">
-          <input
+          <Input
             type="text"
             placeholder="Search patterns, merchants, or types..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            wrapperClassName="flex-1 relative"
           />
         </div>
         <div className="flex gap-2">
-          <button
+          <Button
             onClick={() => setFilterActive(null)}
-            className={`px-4 py-2 text-sm rounded-lg ${
-              filterActive === null 
-                ? 'bg-blue-600 text-white' 
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
+            variant={filterActive === null ? 'primary' : 'secondary'}
+            size="sm"
           >
             All
-          </button>
-          <button
+          </Button>
+          <Button
             onClick={() => setFilterActive(true)}
-            className={`px-4 py-2 text-sm rounded-lg ${
-              filterActive === true 
-                ? 'bg-green-600 text-white' 
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
+            variant={filterActive === true ? 'success' : 'secondary'}
+            size="sm"
           >
             Active
-          </button>
-          <button
+          </Button>
+          <Button
             onClick={() => setFilterActive(false)}
-            className={`px-4 py-2 text-sm rounded-lg ${
-              filterActive === false 
-                ? 'bg-red-600 text-white' 
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-            }`}
+            variant={filterActive === false ? 'danger' : 'secondary'}
+            size="sm"
           >
             Inactive
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -209,12 +215,11 @@ const MerchantPatterns: React.FC = () => {
             }
           </p>
           {!searchTerm && filterActive === null && (
-            <button
+            <Button
               onClick={() => setShowCreateModal(true)}
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
             >
               Create Your First Pattern
-            </button>
+            </Button>
           )}
         </div>
       ) : (
@@ -278,24 +283,27 @@ const MerchantPatterns: React.FC = () => {
                       />
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                      <button
+                      <Button
                         onClick={() => setEditingPattern(pattern)}
-                        className="text-blue-600 hover:text-blue-900"
+                        variant="ghost"
+                        size="sm"
                       >
                         Edit
-                      </button>
-                      <button
+                      </Button>
+                      <Button
                         onClick={() => togglePatternStatus(pattern)}
-                        className={pattern.is_active ? 'text-yellow-600 hover:text-yellow-900' : 'text-green-600 hover:text-green-900'}
+                        variant={pattern.is_active ? 'secondary' : 'success'}
+                        size="sm"
                       >
                         {pattern.is_active ? 'Disable' : 'Enable'}
-                      </button>
-                      <button
+                      </Button>
+                      <Button
                         onClick={() => deletePattern(pattern)}
-                        className="text-red-600 hover:text-red-900"
+                        variant="danger"
+                        size="sm"
                       >
                         Delete
-                      </button>
+                      </Button>
                     </td>
                   </tr>
                 ))}
@@ -308,10 +316,10 @@ const MerchantPatterns: React.FC = () => {
       {/* Stats */}
       {patterns.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <div className="bg-white p-4 rounded-lg shadow">
+          <Card>
             <h3 className="text-sm font-medium text-gray-500">Total Patterns</h3>
             <p className="text-2xl font-bold text-gray-900">{patterns.length}</p>
-          </div>
+          </Card>
           <div className="bg-white p-4 rounded-lg shadow">
             <h3 className="text-sm font-medium text-gray-500">Active Patterns</h3>
             <p className="text-2xl font-bold text-green-600">
@@ -360,81 +368,52 @@ const MerchantPatterns: React.FC = () => {
             createPattern(data);
           }
         }} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Transaction Pattern *
-            </label>
-            <input
-              type="text"
-              name="pattern"
-              defaultValue={editingPattern?.pattern || ''}
-              placeholder="e.g., AMZN Mktp, STARBUCKS, TST* Restaurant"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              required
-            />
-          </div>
+          <Input
+            label="Transaction Pattern"
+            type="text"
+            name="pattern"
+            defaultValue={editingPattern?.pattern || ''}
+            placeholder="e.g., AMZN Mktp, STARBUCKS, TST* Restaurant"
+            required
+          />
           
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Merchant Name *
-            </label>
-            <input
-              type="text"
-              name="merchant_name"
-              defaultValue={editingPattern?.merchant_name || ''}
-              placeholder="e.g., Amazon, Starbucks, Test Restaurant"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              required
-            />
-          </div>
+          <Input
+            label="Merchant Name"
+            type="text"
+            name="merchant_name"
+            defaultValue={editingPattern?.merchant_name || ''}
+            placeholder="e.g., Amazon, Starbucks, Test Restaurant"
+            required
+          />
           
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Transaction Type *
-            </label>
-            <input
-              type="text"
-              name="kind"
-              defaultValue={editingPattern?.kind || ''}
-              placeholder="e.g., online_purchase, coffee_shop, restaurant"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              required
-            />
-          </div>
+          <Input
+            label="Transaction Type"
+            type="text"
+            name="kind"
+            defaultValue={editingPattern?.kind || ''}
+            placeholder="e.g., online_purchase, coffee_shop, restaurant"
+            required
+          />
           
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Default Category *
-            </label>
-            <select
-              name="category"
-              defaultValue={editingPattern?.category || ''}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              required
-            >
-              <option value="">Select Category</option>
-              {categories.map(cat => (
-                <option key={cat.id} value={cat.id}>{cat.name}</option>
-              ))}
-            </select>
-          </div>
+          <Select
+            label="Default Category"
+            name="category"
+            defaultValue={editingPattern?.category || ''}
+            required
+            options={categories.map(cat => ({ value: cat.id, label: cat.name }))}
+          />
           
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Confidence Score *
-            </label>
-            <input
-              type="number"
-              name="confidence"
-              defaultValue={editingPattern?.confidence || 0.8}
-              min="0"
-              max="1"
-              step="0.1"
-              placeholder="0.8"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              required
-            />
-          </div>
+          <Input
+            label="Confidence Score"
+            type="number"
+            name="confidence"
+            defaultValue={editingPattern?.confidence || 0.8}
+            min="0"
+            max="1"
+            step="0.1"
+            placeholder="0.8"
+            required
+          />
           
           <div className="flex items-center">
             <input
@@ -449,22 +428,23 @@ const MerchantPatterns: React.FC = () => {
           </div>
           
           <div className="flex justify-end space-x-3 pt-4">
-            <button
+            <Button
               type="button"
               onClick={() => {
                 setShowCreateModal(false);
                 setEditingPattern(null);
               }}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
+              variant="secondary"
+              size="md"
             >
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
               type="submit"
-              className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700"
+              size="md"
             >
               {editingPattern ? 'Update Pattern' : 'Create Pattern'}
-            </button>
+            </Button>
           </div>
         </form>
       </FormModal>

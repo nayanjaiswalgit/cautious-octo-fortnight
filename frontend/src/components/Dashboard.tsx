@@ -16,6 +16,10 @@ import { useToast } from './Toast';
 import { FormModal } from './FormModal';
 import { LoadingSpinner } from './LoadingSpinner';
 import { Select } from './Select';
+import { ColoredCircle } from './ColoredCircle';
+import { ProgressBar } from './ProgressBar';
+import { Card } from './Card';
+import { Button } from './Button';
 import type { Filter } from '../types';
 
 interface TimeRange {
@@ -95,14 +99,14 @@ export const Dashboard: React.FC = () => {
       setIsLoading(true);
       try {
         await Promise.all([fetchTransactions(), fetchSummary()]);
-      } catch (error) {
+      } catch {
         showError('Failed to load data', 'Please try refreshing the page');
       } finally {
         setIsLoading(false);
       }
     };
     loadData();
-  }, [fetchTransactions, fetchSummary]);
+  }, [fetchTransactions, fetchSummary, showError]);
 
   // Filter transactions based on time range and filters
   const filteredTransactions = useMemo(() => {
@@ -209,7 +213,7 @@ export const Dashboard: React.FC = () => {
       incomeTrend: calculateTrend(income, previousIncome),
       expensesTrend: calculateTrend(expenses, previousExpenses),
     };
-  }, [filteredTransactions, selectedTimeRange, state.transactions]);
+  }, [filteredTransactions, selectedTimeRange, state.transactions, state.categories]);
 
   // Enhanced chart data with better grouping
   const chartData = useMemo(() => {
@@ -283,7 +287,7 @@ export const Dashboard: React.FC = () => {
       }))
       .sort((a, b) => b.value - a.value)
       .slice(0, 10);
-  }, [filteredTransactions, analyticsData.totalExpenses]);
+  }, [filteredTransactions, analyticsData.totalExpenses, state.categories]);
 
   const recentTransactions = useMemo(() => 
     state.transactions
@@ -323,7 +327,7 @@ export const Dashboard: React.FC = () => {
         lendingData: { contactName: '', contactEmail: '', dueDate: '' }
       });
       showSuccess('Transaction added successfully!');
-    } catch (error) {
+    } catch {
       showError('Failed to add transaction');
     }
   };
@@ -359,9 +363,9 @@ export const Dashboard: React.FC = () => {
       window.URL.revokeObjectURL(url);
       
       showSuccess('Report Downloaded', `Your financial report has been downloaded in ${format.toUpperCase()} format`);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Export failed:', error);
-      const errorMessage = error?.response?.data?.message || error?.message || 'Unknown error occurred';
+      const errorMessage = (error as { response?: { data?: { message?: string } } })?.response?.data?.message || (error as Error)?.message || 'Unknown error occurred';
       showError('Export Failed', `Unable to generate report: ${errorMessage}`);
     } finally {
       setIsLoading(false);
@@ -479,22 +483,23 @@ export const Dashboard: React.FC = () => {
             />
           )}
           
-          <button
+          <Button
             onClick={() => setShowAddTransaction(true)}
-            className="btn btn-primary text-sm"
+            size="sm"
           >
             <Plus className="w-4 h-4 mr-2" />
             Add Transaction
-          </button>
+          </Button>
           
-          <button
+          <Button
             onClick={() => window.location.reload()}
             disabled={isLoading}
-            className="btn btn-secondary flex items-center space-x-2"
+            className="flex items-center space-x-2"
+            variant="secondary"
           >
             <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
             <span>Refresh</span>
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -503,7 +508,7 @@ export const Dashboard: React.FC = () => {
         <>
           {/* Summary Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="card p-6 hover:shadow-soft-lg transition-shadow duration-300">
+            <Card>
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-secondary-500 dark:text-secondary-400">Total Balance</p>
@@ -515,9 +520,9 @@ export const Dashboard: React.FC = () => {
                   <CreditCard className="h-6 w-6 text-blue-600" />
                 </div>
               </div>
-            </div>
+            </Card>
             
-            <div className="card p-6 hover:shadow-soft-lg transition-shadow duration-300">
+            <Card>
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-secondary-500 dark:text-secondary-400">This Month Income</p>
@@ -529,9 +534,9 @@ export const Dashboard: React.FC = () => {
                   <TrendingUp className="h-6 w-6 text-green-600" />
                 </div>
               </div>
-            </div>
+            </Card>
             
-            <div className="card p-6 hover:shadow-soft-lg transition-shadow duration-300">
+            <Card>
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-secondary-500 dark:text-secondary-400">This Month Expenses</p>
@@ -543,9 +548,9 @@ export const Dashboard: React.FC = () => {
                   <TrendingDown className="h-6 w-6 text-red-600" />
                 </div>
               </div>
-            </div>
+            </Card>
             
-            <div className="card p-6 hover:shadow-soft-lg transition-shadow duration-300">
+            <Card>
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-secondary-500 dark:text-secondary-400">Net Flow</p>
@@ -557,14 +562,14 @@ export const Dashboard: React.FC = () => {
                   <DollarSign className="h-6 w-6 text-purple-600" />
                 </div>
               </div>
-            </div>
+            </Card>
           </div>
 
           {/* Account Balances, Charts, and Recent Activity */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
             {/* Left column - Account Balances and Recent Transactions */}
             <div className="lg:col-span-1 space-y-6">
-              <div className="card p-6 hover:shadow-soft-lg transition-shadow duration-300">
+              <Card>
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-lg font-semibold text-secondary-900 dark:text-secondary-100">Account Balances</h3>
                   <button 
@@ -602,9 +607,9 @@ export const Dashboard: React.FC = () => {
                     <p className="text-sm text-secondary-500 dark:text-secondary-400 text-center py-4">No accounts added yet</p>
                   )}
                 </div>
-              </div>
+              </Card>
 
-              <div className="card p-6 hover:shadow-soft-lg transition-shadow duration-300">
+              <Card>
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-lg font-semibold text-secondary-900 dark:text-secondary-100">Recent Transactions</h3>
                   <button 
@@ -630,12 +635,12 @@ export const Dashboard: React.FC = () => {
                     </div>
                   ))}
                 </div>
-              </div>
+              </Card>
             </div>
 
             {/* Right column - Chart and Goals */}
             <div className="lg:col-span-2 space-y-6">
-              <div className="card p-6 hover:shadow-soft-lg transition-shadow duration-300">
+              <Card>
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-lg font-semibold text-secondary-900 dark:text-secondary-100">Financial Trends</h3>
                   <div className="flex items-center space-x-2">
@@ -647,7 +652,7 @@ export const Dashboard: React.FC = () => {
                       ].map(({ type, icon: Icon }) => (
                         <button
                           key={type}
-                          onClick={() => setChartType(type as any)}
+                          onClick={() => setChartType(type)}
                           className={`p-2 rounded-md transition-colors ${
                             chartType === type ? 'bg-white dark:bg-secondary-700 shadow-sm text-blue-600 dark:text-blue-400' : 'text-secondary-500 dark:text-secondary-400 hover:text-secondary-600 dark:text-secondary-400'
                           }`}
@@ -659,9 +664,9 @@ export const Dashboard: React.FC = () => {
                   </div>
                 </div>
                 {renderChart()}
-              </div>
+              </Card>
 
-              <div className="card p-6 hover:shadow-soft-lg transition-shadow duration-300">
+              <Card>
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-lg font-semibold text-secondary-900 dark:text-secondary-100">Goals Progress</h3>
                   <button 
@@ -681,10 +686,10 @@ export const Dashboard: React.FC = () => {
                         </p>
                       </div>
                       <div className="w-full bg-secondary-100 dark:bg-secondary-800 rounded-full h-2.5">
-                        <div 
+                        <ProgressBar
+                          percentage={Math.min((parseFloat(goal.current_amount) / parseFloat(goal.target_amount)) * 100, 100)}
                           className="bg-primary-600 h-2.5 rounded-full"
-                          style={{ width: `${Math.min((parseFloat(goal.current_amount) / parseFloat(goal.target_amount)) * 100, 100)}%` }}
-                        ></div>
+                        />
                       </div>
                       <div className="flex justify-between text-sm text-secondary-500 dark:text-secondary-400 mt-1">
                         <span>{formatCurrency(parseFloat(goal.current_amount), authState.user)}</span>
@@ -693,7 +698,7 @@ export const Dashboard: React.FC = () => {
                     </div>
                   ))}
                 </div>
-              </div>
+              </Card>
             </div>
           </div>
         </>
@@ -702,7 +707,7 @@ export const Dashboard: React.FC = () => {
         <>
           {/* Analytics Summary Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="card p-6 hover:shadow-soft-lg transition-shadow duration-300">
+            <Card>
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-secondary-500 dark:text-secondary-400">Total Transactions</p>
@@ -713,9 +718,9 @@ export const Dashboard: React.FC = () => {
                   {Math.abs(analyticsData.transactionTrend).toFixed(1)}%
                 </div>
               </div>
-            </div>
+            </Card>
 
-            <div className="card p-6 hover:shadow-soft-lg transition-shadow duration-300">
+            <Card>
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-secondary-500 dark:text-secondary-400">Total Income</p>
@@ -726,9 +731,9 @@ export const Dashboard: React.FC = () => {
                   {Math.abs(analyticsData.incomeTrend).toFixed(1)}%
                 </div>
               </div>
-            </div>
+            </Card>
 
-            <div className="card p-6 hover:shadow-soft-lg transition-shadow duration-300">
+            <Card>
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-secondary-500 dark:text-secondary-400">Total Expenses</p>
@@ -739,9 +744,9 @@ export const Dashboard: React.FC = () => {
                   {Math.abs(analyticsData.expensesTrend).toFixed(1)}%
                 </div>
               </div>
-            </div>
+            </Card>
 
-            <div className="card p-6 hover:shadow-soft-lg transition-shadow duration-300">
+            <Card>
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-secondary-500 dark:text-secondary-400">Net Flow</p>
@@ -753,13 +758,13 @@ export const Dashboard: React.FC = () => {
                   Avg: {formatCurrency(analyticsData.avgTransaction, authState.user)}
                 </div>
               </div>
-            </div>
+            </Card>
           </div>
 
           {/* Charts Section */}
           <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
             {/* Main Chart */}
-            <div className="xl:col-span-2 card p-6 hover:shadow-soft-lg transition-shadow duration-300">
+            <Card className="xl:col-span-2">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-xl font-semibold text-secondary-900 dark:text-secondary-100">Financial Trends</h3>
                 <div className="flex items-center space-x-2">
@@ -771,7 +776,7 @@ export const Dashboard: React.FC = () => {
                     ].map(({ type, icon: Icon }) => (
                       <button
                         key={type}
-                        onClick={() => setChartType(type as any)}
+                        onClick={() => setChartType(type)}
                         className={`p-2 rounded-md transition-colors ${
                           chartType === type ? 'bg-white dark:bg-secondary-700 shadow-sm text-blue-600 dark:text-blue-400' : 'text-secondary-500 dark:text-secondary-400 hover:text-secondary-600 dark:text-secondary-400'
                         }`}
@@ -783,10 +788,10 @@ export const Dashboard: React.FC = () => {
                 </div>
               </div>
               {renderChart()}
-            </div>
+            </Card>
 
             {/* Category Breakdown */}
-            <div className="card p-6 hover:shadow-soft-lg transition-shadow duration-300">
+            <Card>
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-xl font-semibold text-secondary-900 dark:text-secondary-100">Expense Categories</h3>
                 <PieChartIcon className="h-6 w-6 text-purple-600" />
@@ -826,20 +831,20 @@ export const Dashboard: React.FC = () => {
                 {categoryData.slice(0, 6).map((category, index) => (
                   <div key={index} className="flex items-center justify-between text-sm">
                     <div className="flex items-center space-x-3">
-                      <div className="w-3 h-3 rounded-full" style={{ backgroundColor: category.color }}></div>
+                      <ColoredCircle color={category.color} />
                       <span className="font-medium text-secondary-900 dark:text-secondary-100 truncate">{category.name}</span>
                     </div>
                     <span className="font-semibold text-secondary-900 dark:text-secondary-100">{formatCurrency(category.value, authState.user)}</span>
                   </div>
                 ))}
               </div>
-            </div>
+            </Card>
           </div>
 
           {/* Insights & Export Section */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Key Insights */}
-            <div className="card p-6 hover:shadow-soft-lg transition-shadow duration-300">
+            <Card>
               <h3 className="text-xl font-semibold text-secondary-900 dark:text-secondary-100 mb-4">Key Insights</h3>
               <div className="space-y-4">
                 <div className="flex items-start space-x-4">
@@ -887,10 +892,10 @@ export const Dashboard: React.FC = () => {
                   </div>
                 </div>
               </div>
-            </div>
+            </Card>
 
             {/* Export Options */}
-            <div className="card p-6 hover:shadow-soft-lg transition-shadow duration-300">
+            <Card>
               <h3 className="text-xl font-semibold text-secondary-900 dark:text-secondary-100 mb-4">Export Reports</h3>
               <p className="text-secondary-600 dark:text-secondary-400 text-sm mb-6">
                 Download comprehensive financial reports in various formats.
@@ -916,7 +921,7 @@ export const Dashboard: React.FC = () => {
                   </button>
                 ))}
               </div>
-            </div>
+            </Card>
           </div>
         </>
       )}
@@ -1010,13 +1015,14 @@ export const Dashboard: React.FC = () => {
           </div>
           
           <div className="flex justify-end space-x-3 pt-4">
-            <button
+            <Button
               type="button"
               onClick={() => setShowAddTransaction(false)}
-              className="btn btn-secondary text-sm"
+              size="sm"
+              variant="secondary"
             >
               Cancel
-            </button>
+            </Button>
             <button
               type="submit"
               className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700"

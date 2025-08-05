@@ -1,18 +1,18 @@
 // Utility function to safely log errors without object-to-primitive conversion issues
 export const safeLog = {
-  error: (message: string, error?: any) => {
+  error: (message: string, error?: unknown) => {
     if (error) {
       // Safely extract error information
       const errorInfo = error instanceof Error 
         ? error.message 
-        : error?.message || String(error);
+        : (error as { message?: string })?.message || String(error);
       console.error(message, errorInfo);
     } else {
       console.error(message);
     }
   },
   
-  warn: (message: string, data?: any) => {
+  warn: (message: string, data?: unknown) => {
     if (data) {
       const safeData = typeof data === 'object' 
         ? JSON.stringify(data, null, 2)
@@ -23,7 +23,7 @@ export const safeLog = {
     }
   },
   
-  info: (message: string, data?: any) => {
+  info: (message: string, data?: unknown) => {
     if (data) {
       const safeData = typeof data === 'object' 
         ? JSON.stringify(data, null, 2)

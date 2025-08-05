@@ -5,6 +5,10 @@ import { Modal } from './Modal';
 import { FormModal } from './FormModal';
 import { StatusBadge } from './StatusBadge';
 import { apiClient } from '../api/client';
+import { Button } from './Button';
+import { Input } from './Input';
+import { Select } from './Select';
+import type { Category } from '../types';
 
 interface ProcessingRule {
   id: number;
@@ -37,10 +41,20 @@ interface TestResult {
   total_tested: number;
 }
 
+interface RuleFormData {
+  name: FormDataEntryValue | null;
+  condition_field: FormDataEntryValue | null;
+  condition_operator: FormDataEntryValue | null;
+  condition_value: FormDataEntryValue | null;
+  action_type: FormDataEntryValue | null;
+  action_value: FormDataEntryValue | null;
+  is_active: boolean;
+}
+
 const AutomationRules: React.FC = () => {
   const [rules, setRules] = useState<ProcessingRule[]>([]);
   const [choices, setChoices] = useState<RuleChoices | null>(null);
-  const [categories, setCategories] = useState<any[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingRule, setEditingRule] = useState<ProcessingRule | null>(null);
@@ -57,8 +71,8 @@ const AutomationRules: React.FC = () => {
   const loadRules = async () => {
     try {
       const response = await apiClient.getProcessingRules();
-      setRules(response);
-    } catch (error) {
+      setRules(response as ProcessingRule[]);
+    } catch (error: unknown) {
       console.error('Error loading rules:', error);
       toast.error('Failed to load automation rules');
     } finally {
@@ -69,8 +83,8 @@ const AutomationRules: React.FC = () => {
   const loadChoices = async () => {
     try {
       const response = await apiClient.getProcessingRuleChoices();
-      setChoices(response);
-    } catch (error) {
+      setChoices(response as RuleChoices);
+    } catch (error: unknown) {
       console.error('Error loading choices:', error);
     }
   };
@@ -78,22 +92,23 @@ const AutomationRules: React.FC = () => {
   const loadCategories = async () => {
     try {
       const response = await apiClient.getCategories();
-      setCategories(response);
-    } catch (error) {
+      setCategories(response as Category[]);
+    } catch (error: unknown) {
       console.error('Error loading categories:', error);
     }
   };
 
-  const createRule = async (data: any) => {
+  const createRule = async (data: RuleFormData) => {
     try {
       await apiClient.createProcessingRule(data);
       toast.success('Automation rule created successfully!');
       setShowCreateModal(false);
       loadRules();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error creating rule:', error);
-      if (error.response?.data) {
-        const errorMessages = Object.values(error.response.data).flat();
+      const err = error as { response?: { data?: Record<string, string[]> } };
+      if (err.response?.data) {
+        const errorMessages = Object.values(err.response.data).flat();
         toast.error(errorMessages.join(', '));
       } else {
         toast.error('Failed to create automation rule');
@@ -101,7 +116,7 @@ const AutomationRules: React.FC = () => {
     }
   };
 
-  const updateRule = async (data: any) => {
+  const updateRule = async (data: RuleFormData) => {
     if (!editingRule) return;
     
     try {
@@ -109,10 +124,11 @@ const AutomationRules: React.FC = () => {
       toast.success('Automation rule updated successfully!');
       setEditingRule(null);
       loadRules();
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error updating rule:', error);
-      if (error.response?.data) {
-        const errorMessages = Object.values(error.response.data).flat();
+      const err = error as { response?: { data?: Record<string, string[]> } };
+      if (err.response?.data) {
+        const errorMessages = Object.values(err.response.data).flat();
         toast.error(errorMessages.join(', '));
       } else {
         toast.error('Failed to update automation rule');
@@ -127,7 +143,7 @@ const AutomationRules: React.FC = () => {
       await apiClient.deleteProcessingRule(rule.id);
       toast.success('Automation rule deleted');
       loadRules();
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error deleting rule:', error);
       toast.error('Failed to delete automation rule');
     }
@@ -140,7 +156,7 @@ const AutomationRules: React.FC = () => {
       });
       toast.success(`Rule ${rule.is_active ? 'disabled' : 'enabled'}`);
       loadRules();
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error toggling rule status:', error);
       toast.error('Failed to update rule status');
     }
@@ -150,8 +166,8 @@ const AutomationRules: React.FC = () => {
     setTestingRule(rule);
     try {
       const response = await apiClient.testProcessingRule(rule.id);
-      setTestResult(response);
-    } catch (error) {
+      setTestResult(response as TestResult);
+    } catch (error: unknown) {
       console.error('Error testing rule:', error);
       toast.error('Failed to test rule');
     }
@@ -162,8 +178,8 @@ const AutomationRules: React.FC = () => {
     
     try {
       const response = await apiClient.applyProcessingRuleToExisting(rule.id);
-      toast.success(response.message);
-    } catch (error) {
+      toast.success((response as { message: string }).message || 'Rule applied successfully');
+    } catch (error: unknown) {
       console.error('Error applying rule:', error);
       toast.error('Failed to apply rule to existing transactions');
     }
@@ -175,7 +191,7 @@ const AutomationRules: React.FC = () => {
       await apiClient.reorderProcessingRules(ruleIds);
       setRules(newOrder);
       toast.success('Rules reordered successfully');
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error reordering rules:', error);
       toast.error('Failed to reorder rules');
     }
@@ -231,12 +247,12 @@ const AutomationRules: React.FC = () => {
             Automatically categorize and organize your transactions based on custom rules
           </p>
         </div>
-        <button
+        <Button
           onClick={() => setShowCreateModal(true)}
-          className="flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700"
+          size="sm"
         >
           ➕ Create Rule
-        </button>
+        </Button>
       </div>
 
       {/* Rules Priority Info */}
@@ -258,12 +274,11 @@ const AutomationRules: React.FC = () => {
           <p className="text-gray-500 mb-6">
             Create your first rule to automatically organize your transactions
           </p>
-          <button
+          <Button
             onClick={() => setShowCreateModal(true)}
-            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
           >
             Create Your First Rule
-          </button>
+          </Button>
         </div>
       ) : (
         <div className="space-y-3">
@@ -305,41 +320,42 @@ const AutomationRules: React.FC = () => {
                 </div>
                 
                 <div className="flex items-center gap-2">
-                  <button
+                  <Button
                     onClick={() => testRule(rule)}
-                    className="px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
+                    size="sm"
+                    variant="secondary"
                   >
                     Test
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     onClick={() => setEditingRule(rule)}
-                    className="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded hover:bg-gray-200"
+                    size="sm"
+                    variant="secondary"
                   >
                     Edit
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     onClick={() => toggleRuleStatus(rule)}
-                    className={`px-3 py-1 text-sm rounded ${
-                      rule.is_active 
-                        ? 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200'
-                        : 'bg-green-100 text-green-700 hover:bg-green-200'
-                    }`}
+                    size="sm"
+                    variant={rule.is_active ? 'secondary' : 'success'}
                   >
                     {rule.is_active ? 'Disable' : 'Enable'}
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     onClick={() => applyToExisting(rule)}
                     disabled={!rule.is_active}
-                    className="px-3 py-1 text-sm bg-purple-100 text-purple-700 rounded hover:bg-purple-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                    size="sm"
+                    variant="info"
                   >
                     Apply to Existing
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     onClick={() => deleteRule(rule)}
-                    className="px-3 py-1 text-sm bg-red-100 text-red-700 rounded hover:bg-red-200"
+                    size="sm"
+                    variant="danger"
                   >
                     Delete
-                  </button>
+                  </Button>
                 </div>
               </div>
             </div>
@@ -357,10 +373,10 @@ const AutomationRules: React.FC = () => {
         title={editingRule ? 'Edit Automation Rule' : 'Create Automation Rule'}
         size="lg"
       >
-        <form onSubmit={(e) => {
+        <form onSubmit={(e: React.FormEvent<HTMLFormElement>) => {
           e.preventDefault();
           const formData = new FormData(e.currentTarget);
-          const data = {
+          const data: RuleFormData = {
             name: formData.get('name'),
             condition_field: formData.get('condition_field'),
             condition_operator: formData.get('condition_operator'),
@@ -375,112 +391,55 @@ const AutomationRules: React.FC = () => {
             createRule(data);
           }
         }} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Rule Name *
-            </label>
-            <input
-              type="text"
-              name="name"
-              defaultValue={editingRule?.name || ''}
-              placeholder="e.g., Categorize Amazon purchases"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              required
-            />
-          </div>
+          <Input
+            label="Rule Name"
+            type="text"
+            name="name"
+            defaultValue={editingRule?.name || ''}
+            placeholder="e.g., Categorize Amazon purchases"
+            required
+          />
           
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Check Field *
-            </label>
-            <select
-              name="condition_field"
-              defaultValue={editingRule?.condition_field || ''}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              required
-            >
-              <option value="">Select Field</option>
-              {choices?.condition_fields?.map(([value, label]) => (
-                <option key={value} value={value}>{label}</option>
-              ))}
-            </select>
-          </div>
+          <Select
+            label="Check Field"
+            name="condition_field"
+            defaultValue={editingRule?.condition_field || ''}
+            required
+            options={choices?.condition_fields?.map(([value, label]) => ({ value, label })) || []}
+          />
           
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Condition *
-            </label>
-            <select
-              name="condition_operator"
-              defaultValue={editingRule?.condition_operator || ''}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              required
-            >
-              <option value="">Select Condition</option>
-              {choices?.condition_operators?.map(([value, label]) => (
-                <option key={value} value={value}>{label}</option>
-              ))}
-            </select>
-          </div>
+          <Select
+            label="Condition"
+            name="condition_operator"
+            defaultValue={editingRule?.condition_operator || ''}
+            required
+            options={choices?.condition_operators?.map(([value, label]) => ({ value, label })) || []}
+          />
           
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Value *
-            </label>
-            <input
-              type="text"
-              name="condition_value"
-              defaultValue={editingRule?.condition_value || ''}
-              placeholder="e.g., AMZN, Starbucks, etc."
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              required
-            />
-          </div>
+          <Input
+            label="Value"
+            type="text"
+            name="condition_value"
+            defaultValue={editingRule?.condition_value || ''}
+            placeholder="e.g., AMZN, Starbucks, etc."
+            required
+          />
           
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Action *
-            </label>
-            <select
-              name="action_type"
-              defaultValue={editingRule?.action_type || ''}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              required
-            >
-              <option value="">Select Action</option>
-              {choices?.action_types?.map(([value, label]) => (
-                <option key={value} value={value}>{label}</option>
-              ))}
-            </select>
-          </div>
+          <Select
+            label="Action"
+            name="action_type"
+            defaultValue={editingRule?.action_type || ''}
+            required
+            options={choices?.action_types?.map(([value, label]) => ({ value, label })) || []}
+          />
           
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Action Value *
-            </label>
-            {(editingRule?.action_type === 'set_category' || (!editingRule && categories.length > 0)) ? (
-              <select
-                name="action_value"
-                defaultValue={editingRule?.action_value || ''}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                required
-              >
-                <option value="">Select Category</option>
-                {categories.map(cat => (
-                  <option key={cat.id} value={cat.id.toString()}>{cat.name}</option>
-                ))}
-              </select>
-            ) : (
-              <input
-                type="text"
-                name="action_value"
-                defaultValue={editingRule?.action_value || ''}
-                placeholder="Action value"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                required
-              />
-            )}
-          </div>
+          <Select
+            label="Action Value"
+            name="action_value"
+            defaultValue={editingRule?.action_value || ''}
+            required
+            options={categories.map(cat => ({ value: cat.id.toString(), label: cat.name }))}
+          />
           
           <div className="flex items-center">
             <input
@@ -495,22 +454,23 @@ const AutomationRules: React.FC = () => {
           </div>
           
           <div className="flex justify-end space-x-3 pt-4">
-            <button
+            <Button
               type="button"
               onClick={() => {
                 setShowCreateModal(false);
                 setEditingRule(null);
               }}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
+              variant="secondary"
+              size="md"
             >
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
               type="submit"
-              className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700"
+              size="md"
             >
               {editingRule ? 'Update Rule' : 'Create Rule'}
-            </button>
+            </Button>
           </div>
         </form>
       </FormModal>

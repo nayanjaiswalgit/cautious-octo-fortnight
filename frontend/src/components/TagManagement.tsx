@@ -9,6 +9,9 @@ import {
 } from 'lucide-react';
 import { useTags } from '../hooks/useTags';
 import { Modal } from './Modal';
+import { Button } from './Button';
+import { Input } from './Input';
+import { Select } from './Select';
 
 export const TagManagement: React.FC = () => {
   const { allTags, isLoading, error, getEntitiesByTag } = useTags();
@@ -108,28 +111,24 @@ export const TagManagement: React.FC = () => {
         <div className="p-6">
           <div className="flex flex-col sm:flex-row gap-4">
             {/* Search */}
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-              <input
+            <div className="flex-1">
+              <Input
                 type="text"
                 placeholder="Search tags..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 theme-input"
+                icon={Search}
               />
             </div>
             
             {/* Sort */}
             <div className="flex items-center space-x-2">
-              <Filter className="w-5 h-5 text-gray-400" />
-              <select
+              <Select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as 'name' | 'usage')}
-                className="theme-input"
-              >
-                <option value="usage">Sort by Usage</option>
-                <option value="name">Sort by Name</option>
-              </select>
+                options={[{ value: 'usage', label: 'Sort by Usage' }, { value: 'name', label: 'Sort by Name' }]}
+                label="Sort by"
+              />
             </div>
           </div>
         </div>
@@ -176,12 +175,13 @@ export const TagManagement: React.FC = () => {
                   </div>
                   
                   <div className="flex items-center space-x-2">
-                    <button
+                    <Button
                       onClick={() => handleViewTagDetails(tag.name)}
-                      className="px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors"
+                      size="sm"
+                      variant="secondary"
                     >
                       View Entities ({tag.usage_count})
-                    </button>
+                    </Button>
                   </div>
                 </div>
               </div>

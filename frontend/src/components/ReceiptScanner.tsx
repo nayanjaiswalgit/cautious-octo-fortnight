@@ -3,6 +3,8 @@ import { Camera, Upload, X, Check, AlertCircle, Eye, EyeOff, Loader, Sparkles } 
 import { toast } from 'react-hot-toast';
 import { apiClient } from '../api/client';
 import type { Account, Category } from '../types';
+import { Button } from './Button';
+import { Input } from './Input';
 
 interface ReceiptScannerProps {
   accounts: Account[];
@@ -168,12 +170,13 @@ const ReceiptScanner: React.FC<ReceiptScannerProps> = ({
           </div>
         </div>
         {onClose && (
-          <button
+          <Button
             onClick={onClose}
-            className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100"
+            variant="ghost"
+            size="md"
           >
             <X className="h-5 w-5" />
-          </button>
+          </Button>
         )}
       </div>
 
@@ -181,50 +184,22 @@ const ReceiptScanner: React.FC<ReceiptScannerProps> = ({
         {/* Left Column - File Upload & Preview */}
         <div className="space-y-6">
           {/* Account Selection */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Select Account *
-            </label>
-            <select
-              value={selectedAccount || ''}
-              onChange={(e) => setSelectedAccount(e.target.value ? parseInt(e.target.value) : null)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              required
-            >
-              <option value="">Choose an account...</option>
-              {accounts.map((account) => (
-                <option key={account.id} value={account.id}>
-                  {account.name} ({account.account_type})
-                </option>
-              ))}
-            </select>
-          </div>
+          <Select
+            label="Select Account"
+            value={selectedAccount || ''}
+            onChange={(e) => setSelectedAccount(e.target.value ? parseInt(e.target.value) : null)}
+            required
+            options={accounts.map((account) => ({ value: account.id, label: `${account.name} (${account.account_type})` }))}
+          />
 
           {/* File Upload */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Upload Receipt Image
-            </label>
-            <div
-              onClick={() => fileInputRef.current?.click()}
-              className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-colors"
-            >
-              <Upload className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-lg font-medium text-gray-700 mb-2">
-                Click to upload receipt image
-              </p>
-              <p className="text-sm text-gray-500">
-                Supports JPG, PNG, GIF, BMP, TIFF (max 10MB)
-              </p>
-            </div>
-            <input
-              ref={fileInputRef}
+          <Input
+              label="Upload Receipt Image"
               type="file"
               accept="image/*"
               onChange={handleFileSelect}
-              className="hidden"
+              wrapperClassName="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-colors"
             />
-          </div>
 
           {/* Image Preview */}
           {previewUrl && (
@@ -241,10 +216,12 @@ const ReceiptScanner: React.FC<ReceiptScannerProps> = ({
               </div>
               
               {/* Process Button */}
-              <button
+              <Button
                 onClick={processReceipt}
                 disabled={processing || !selectedAccount}
-                className="w-full mt-4 flex items-center justify-center space-x-2 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full mt-4 flex items-center justify-center space-x-2"
+                variant="primary"
+                size="lg"
               >
                 {processing ? (
                   <>
@@ -257,7 +234,7 @@ const ReceiptScanner: React.FC<ReceiptScannerProps> = ({
                     <span>Process Receipt with AI</span>
                   </>
                 )}
-              </button>
+              </Button>
             </div>
           )}
         </div>
@@ -321,86 +298,63 @@ const ReceiptScanner: React.FC<ReceiptScannerProps> = ({
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Create Transaction</h3>
               
               <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Merchant Name *
-                  </label>
-                  <input
-                    type="text"
-                    value={merchantName}
-                    onChange={(e) => setMerchantName(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Enter merchant name"
-                    required
-                  />
-                </div>
+                <Input
+                label="Merchant Name"
+                type="text"
+                value={merchantName}
+                onChange={(e) => setMerchantName(e.target.value)}
+                placeholder="Enter merchant name"
+                required
+              />
 
                 <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Amount *
-                    </label>
-                    <input
-                      type="number"
-                      step="0.01"
-                      value={amount}
-                      onChange={(e) => setAmount(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      placeholder="0.00"
-                      required
-                    />
-                  </div>
+                  <Input
+                    label="Amount"
+                    type="number"
+                    step="0.01"
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                    placeholder="0.00"
+                    required
+                  />
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Date *
-                    </label>
-                    <input
-                      type="date"
-                      value={date}
-                      onChange={(e) => setDate(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      required
-                    />
-                  </div>
+                  <Input
+                    label="Date"
+                    type="date"
+                    value={date}
+                    onChange={(e) => setDate(e.target.value)}
+                    required
+                  />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Category
                   </label>
-                  <select
+                  <Select
+                    label="Category"
                     value={selectedCategory}
                     onChange={(e) => setSelectedCategory(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  >
-                    <option value="">Choose a category...</option>
-                    {categories.map((category) => (
-                      <option key={category.id} value={category.name}>
-                        {category.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Notes
-                  </label>
-                  <textarea
-                    value={notes}
-                    onChange={(e) => setNotes(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    rows={3}
-                    placeholder="Additional notes..."
+                    options={[{ value: "", label: "Choose a category..." }, ...categories.map((category) => ({ value: category.name, label: category.name })) ]}
                   />
                 </div>
 
+                <Input
+                  label="Notes"
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  multiline
+                  rows={3}
+                  placeholder="Additional notes..."
+                />
+
                 <div className="flex space-x-3 pt-4">
-                  <button
+                  <Button
                     onClick={createTransaction}
                     disabled={creating || !merchantName || !amount || !date || !selectedAccount}
-                    className="flex-1 flex items-center justify-center space-x-2 bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex-1 flex items-center justify-center space-x-2"
+                    variant="primary"
+                    size="lg"
                   >
                     {creating ? (
                       <>
@@ -413,14 +367,15 @@ const ReceiptScanner: React.FC<ReceiptScannerProps> = ({
                         <span>Create Transaction</span>
                       </>
                     )}
-                  </button>
+                  </Button>
                   
-                  <button
+                  <Button
                     onClick={resetForm}
-                    className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                    variant="secondary"
+                    size="lg"
                   >
                     Reset
-                  </button>
+                  </Button>
                 </div>
               </div>
             </div>

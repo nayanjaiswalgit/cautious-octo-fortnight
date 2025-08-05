@@ -5,6 +5,8 @@ import { useToast } from './Toast';
 import { Modal } from './Modal';
 import { formatCurrency } from '../utils/preferences';
 import { useAuth } from '../contexts/AuthContext';
+import { Button } from './Button';
+import { Input } from './Input';
 
 interface UploadedFile {
   id: number;
@@ -55,7 +57,7 @@ export const UploadHistory: React.FC = () => {
       
       // Load uploaded statements
       const sessions = await apiClient.getUploadSessions();
-      setUploadedFiles(sessions);
+      setUploadedFiles(sessions as UploadedFile[]);
       
       // Load receipt images (if endpoint exists)
       try {
@@ -173,57 +175,70 @@ export const UploadHistory: React.FC = () => {
       {/* Tabs */}
       <div className="border-b border-gray-200 mb-6">
         <nav className="-mb-px flex space-x-8">
-          <button
+          <Button
             onClick={() => setActiveTab('statements')}
-            className={`py-4 px-1 border-b-2 font-medium text-sm ${
-              activeTab === 'statements'
-                ? 'border-blue-500 text-blue-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            }`}
+            variant={activeTab === 'statements' ? 'primary' : 'ghost'}
+            size="sm"
+            className="py-4 px-1 border-b-2 rounded-none"
           >
             <FileText className="w-5 h-5 inline mr-2" />
             Bank Statements ({filteredFiles.length})
-          </button>
-          <button
+          </Button>
+          <Button
             onClick={() => setActiveTab('receipts')}
-            className={`py-4 px-1 border-b-2 font-medium text-sm ${
-              activeTab === 'receipts'
-                ? 'border-blue-500 text-blue-600'
-                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-            }`}
+            variant={activeTab === 'receipts' ? 'primary' : 'ghost'}
+            size="sm"
+            className="py-4 px-1 border-b-2 rounded-none"
           >
             <Image className="w-5 h-5 inline mr-2" />
             Receipt Images ({filteredReceipts.length})
-          </button>
+          </Button>
         </nav>
       </div>
 
       {/* Search and Filter */}
       <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 mb-6">
         <div className="relative flex-1">
-          <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-          <input
+          <Input
             type="text"
             placeholder="Search files..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-12 pr-4 py-3 w-full border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 shadow-sm"
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
+            icon={Search}
           />
         </div>
         
         {activeTab === 'statements' && (
           <div className="relative">
             <Filter className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-            <select
-              value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
-              className="pl-12 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 shadow-sm appearance-none"
+            <Button
+              onClick={() => setFilterStatus('all')}
+              variant={filterStatus === 'all' ? 'primary' : 'secondary'}
+              size="sm"
             >
-              <option value="all">All Status</option>
-              <option value="completed">Completed</option>
-              <option value="processing">Processing</option>
-              <option value="failed">Failed</option>
-            </select>
+              All
+            </Button>
+            <Button
+              onClick={() => setFilterStatus('completed')}
+              variant={filterStatus === 'completed' ? 'primary' : 'secondary'}
+              size="sm"
+            >
+              Completed
+            </Button>
+            <Button
+              onClick={() => setFilterStatus('processing')}
+              variant={filterStatus === 'processing' ? 'primary' : 'secondary'}
+              size="sm"
+            >
+              Processing
+            </Button>
+            <Button
+              onClick={() => setFilterStatus('failed')}
+              variant={filterStatus === 'failed' ? 'primary' : 'secondary'}
+              size="sm"
+            >
+              Failed
+            </Button>
             <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
               <ChevronDown className="h-5 w-5" />
             </div>
@@ -309,20 +324,22 @@ export const UploadHistory: React.FC = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <div className="flex items-center justify-end space-x-2">
-                          <button
+                          <Button
                             onClick={() => viewTransactions(file.id)}
-                            className="p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-full transition-colors"
+                            variant="ghost"
+                            size="sm"
                             title="View Transactions"
                           >
                             <Eye className="h-5 w-5" />
-                          </button>
-                          <button
+                          </Button>
+                          <Button
                             onClick={() => deleteFile(file.id, 'statement')}
-                            className="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-full transition-colors"
+                            variant="ghost"
+                            size="sm"
                             title="Delete File"
                           >
                             <Trash2 className="h-5 w-5" />
-                          </button>
+                          </Button>
                         </div>
                       </td>
                     </tr>
@@ -387,23 +404,25 @@ export const UploadHistory: React.FC = () => {
                         {receipt.processed ? 'Processed' : 'Processing'}
                       </span>
                       <div className="flex space-x-1">
-                        <button
+                        <Button
                           onClick={() => {
                             setSelectedFile(receipt);
                             setShowPreviewModal(true);
                           }}
-                          className="p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-full transition-colors"
+                          variant="ghost"
+                          size="sm"
                           title="View Image"
                         >
                           <Eye className="h-5 w-5" />
-                        </button>
-                        <button
+                        </Button>
+                        <Button
                           onClick={() => deleteFile(receipt.id, 'receipt')}
-                          className="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-full transition-colors"
+                          variant="ghost"
+                          size="sm"
                           title="Delete Image"
                         >
                           <Trash2 className="h-5 w-5" />
-                        </button>
+                        </Button>
                       </div>
                     </div>
                   </div>

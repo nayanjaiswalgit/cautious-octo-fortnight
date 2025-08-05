@@ -2,6 +2,9 @@ import { useState } from 'react';
 import type { TransactionSplit } from '../types';
 import { mockCategories } from '../utils/mockData';
 import { Plus, X } from 'lucide-react';
+import { Button } from './Button';
+import { Input } from './Input';
+import { Select } from './Select';
 
 interface SplitEditorProps {
   splits: TransactionSplit[];
@@ -98,72 +101,70 @@ export const SplitEditor = ({ splits, totalAmount, onSplitsChange }: SplitEditor
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <h4 className="text-sm font-medium text-gray-900">Category Splits</h4>
-        <button
+        <Button
           onClick={addSplit}
-          className="inline-flex items-center px-2 py-1 text-xs font-medium text-blue-600 hover:text-blue-700"
+          size="sm"
+          variant="ghost"
         >
           <Plus className="w-4 h-4 mr-1" />
           Add Split
-        </button>
+        </Button>
       </div>
 
       <div className="space-y-3">
         {localSplits.map((split) => (
           <div key={split.id} className="flex items-center space-x-2 p-3 bg-gray-50 rounded">
             <div className="flex-1">
-              <select
+              <Select
                 value={split.categoryId}
                 onChange={(e) => updateSplit(split.id, 'categoryId', e.target.value)}
-                className="w-full px-2 py-1 text-sm border rounded"
-              >
-                <option value="">Select category</option>
-                {mockCategories.map(category => (
-                  <option key={category.id} value={category.id}>{category.name}</option>
-                ))}
-              </select>
+                options={[{ value: "", label: "Select category" }, ...mockCategories.map(category => ({ value: category.id, label: category.name })) ]}
+                className="w-full px-2 py-1 text-sm"
+              />
             </div>
             
             <div className="w-24">
-              <input
+              <Input
                 type="number"
                 placeholder="Amount"
                 value={split.amount.toFixed(2)}
                 onChange={(e) => updateSplit(split.id, 'amount', parseFloat(e.target.value) || 0)}
-                className="w-full px-2 py-1 text-sm border rounded"
                 step="0.01"
+                className="w-full px-2 py-1 text-sm"
               />
             </div>
             
             <div className="w-20">
-              <input
+              <Input
                 type="number"
                 placeholder="%"
                 value={split.percentage.toFixed(1)}
                 onChange={(e) => updateSplit(split.id, 'percentage', parseFloat(e.target.value) || 0)}
-                className="w-full px-2 py-1 text-sm border rounded"
                 step="0.1"
                 max="100"
                 min="0"
+                className="w-full px-2 py-1 text-sm"
               />
             </div>
             
             <div className="flex-1">
-              <input
+              <Input
                 type="text"
                 placeholder="Description (optional)"
                 value={split.description || ''}
                 onChange={(e) => updateSplit(split.id, 'description', e.target.value)}
-                className="w-full px-2 py-1 text-sm border rounded"
+                className="w-full px-2 py-1 text-sm"
               />
             </div>
             
             {localSplits.length > 1 && (
-              <button
+              <Button
                 onClick={() => removeSplit(split.id)}
-                className="p-1 text-red-600 hover:text-red-700"
+                variant="ghost"
+                size="sm"
               >
                 <X className="w-4 h-4" />
-              </button>
+              </Button>
             )}
           </div>
         ))}

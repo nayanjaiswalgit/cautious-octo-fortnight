@@ -87,7 +87,7 @@ export const StatementViewer: React.FC<StatementViewerProps> = () => {
 
   // Filter and sort transactions
   const filteredAndSortedTransactions = useMemo(() => {
-    let filtered = transactions.filter(transaction => {
+    const filtered = transactions.filter(transaction => {
       if (searchQuery) {
         const query = searchQuery.toLowerCase();
         return (
@@ -477,7 +477,7 @@ export const StatementViewer: React.FC<StatementViewerProps> = () => {
 
       {/* Excel-like Table */}
       <div className="bg-white rounded-lg shadow border overflow-hidden">
-        <div className="overflow-x-auto" style={{ maxHeight: '600px' }}>
+        <div className="overflow-x-auto max-h-600px">
           <table className="w-full">
             <thead className="bg-gray-50 sticky top-0 z-10">
               <tr>

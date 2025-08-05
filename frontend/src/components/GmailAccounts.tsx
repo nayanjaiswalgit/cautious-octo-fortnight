@@ -13,6 +13,7 @@ import {
 import { apiClient } from "../api/client";
 import { LoadingSpinner } from "./LoadingSpinner";
 import Modal from "./Modal";
+import { Button } from "./Button";
 import { Toast } from "./Toast";
 
 interface GmailAccount {
@@ -268,13 +269,12 @@ const GmailAccounts: React.FC = () => {
             Automatically sync transactions from your Gmail accounts
           </p>
         </div>
-        <button
+        <Button
           onClick={handleAddGmailAccount}
-          className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
         >
           <Plus className="w-4 h-4" />
           Add Gmail Account
-        </button>
+        </Button>
       </div>
 
       {/* Gmail Accounts */}
@@ -295,12 +295,11 @@ const GmailAccounts: React.FC = () => {
                 Connect your Gmail account to automatically sync transactions
                 from emails
               </p>
-              <button
+              <Button
                 onClick={handleAddGmailAccount}
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
               >
                 Connect Gmail Account
-              </button>
+              </Button>
             </div>
           ) : (
             <div className="space-y-4">
@@ -336,36 +335,40 @@ const GmailAccounts: React.FC = () => {
                     </div>
                     <div className="flex items-center gap-2">
                       {account.needs_reauth ? (
-                        <button
+                        <Button
                           onClick={() => handleReauth(account.id)}
-                          className="text-orange-600 hover:text-orange-700 px-3 py-1 text-sm border border-orange-300 rounded"
+                          size="sm"
+                          variant="secondary"
                         >
                           Re-authenticate
-                        </button>
+                        </Button>
                       ) : account.is_ready_for_sync ? (
-                        <button
+                        <Button
                           onClick={() => handleSyncAccount(account.id)}
-                          className="flex items-center gap-1 text-blue-600 hover:text-blue-700 px-3 py-1 text-sm"
+                          size="sm"
+                          variant="ghost"
                         >
                           <RefreshCw className="w-4 h-4" />
                           Sync Now
-                        </button>
+                        </Button>
                       ) : null}
-                      <button
+                      <Button
                         onClick={() => {
                           setSelectedAccount(account);
                           setShowConfigModal(true);
                         }}
-                        className="text-gray-600 hover:text-gray-700 p-1"
+                        variant="ghost"
+                        size="sm"
                       >
                         <Settings className="w-4 h-4" />
-                      </button>
-                      <button
+                      </Button>
+                      <Button
                         onClick={() => handleDeleteAccount(account.id)}
-                        className="text-red-600 hover:text-red-700 p-1"
+                        variant="ghost"
+                        size="sm"
                       >
                         <Trash2 className="w-4 h-4" />
-                      </button>
+                      </Button>
                     </div>
                   </div>
                 </div>
@@ -385,18 +388,20 @@ const GmailAccounts: React.FC = () => {
               </h2>
               {selectedTransactions.length > 0 && (
                 <div className="flex gap-2">
-                  <button
+                  <Button
                     onClick={handleBulkApprove}
-                    className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700"
+                    size="sm"
+                    variant="success"
                   >
                     Approve ({selectedTransactions.length})
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     onClick={handleBulkReject}
-                    className="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700"
+                    size="sm"
+                    variant="danger"
                   >
                     Reject ({selectedTransactions.length})
-                  </button>
+                  </Button>
                 </div>
               )}
             </div>
@@ -492,7 +497,7 @@ const ConfigModal: React.FC<{
   const handleSave = () => {
     onSave({
       display_name: displayName,
-      sync_frequency: syncFrequency as any,
+      sync_frequency: syncFrequency,
       search_query: searchQuery,
       date_range_days: dateRangeDays,
       default_account: defaultAccount,
@@ -520,7 +525,7 @@ const ConfigModal: React.FC<{
           </label>
           <select
             value={syncFrequency}
-            onChange={(e) => setSyncFrequency(e.target.value as any)}
+            onChange={(e) => setSyncFrequency(e.target.value as GmailAccount["sync_frequency"]) }
             className="w-full px-3 py-2 border border-gray-300 rounded-md"
           >
             <option value="manual">Manual Only</option>

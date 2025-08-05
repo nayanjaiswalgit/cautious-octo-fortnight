@@ -8,9 +8,13 @@ import {
   createColumnHelper
 } from '@tanstack/react-table';
 import type { SortingState, ColumnFiltersState } from '@tanstack/react-table';
-import type { Transaction, TransactionSplit } from '../types';
+import type { Transaction, TransactionSplit, Filter as FilterType } from '../types';
 import { Filter, ChevronUp, ChevronDown, Split, Upload, Lock, CheckSquare, Square, Sparkles, Plus } from 'lucide-react';
 import { Modal } from './Modal';
+import { Select } from './Select';
+import { Button } from './Button';
+import { Input } from './Input';
+import { TagInput } from './TagInput';
 import { SplitEditor } from './SplitEditor';
 import ReceiptScanner from './ReceiptScanner';
 import { useData } from '../contexts/DataContext';
@@ -47,28 +51,27 @@ const PasswordPrompt = ({ filename, onSubmit, onCancel }: PasswordPromptProps) =
           The file "{filename}" is password protected. Please enter the password to continue.
         </p>
         <form onSubmit={handleSubmit}>
-          <input
+          <Input
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="Enter PDF password"
-            className="theme-input mb-4"
             autoFocus
           />
           <div className="flex justify-end space-x-3">
-            <button
+            <Button
               type="button"
               onClick={onCancel}
-              className="theme-btn-secondary"
+              variant="secondary"
+              size="md"
             >
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
               type="submit"
-              className="theme-btn-primary"
             >
               Upload
-            </button>
+            </Button>
           </div>
         </form>
       </div>
@@ -137,7 +140,7 @@ export const TransactionTable = () => {
     const uploadSession = searchParams.get('upload_session');
     const groupExpense = searchParams.get('group_expense');
     
-    let filters: any = {};
+    const filters: Partial<FilterType> = {};
     if (uploadSession) filters.upload_session = Number(uploadSession);
     if (groupExpense) filters.group_expense = Number(groupExpense);
     
@@ -149,12 +152,12 @@ export const TransactionTable = () => {
   }, [fetchTransactions, state.accounts, selectedUploadAccount, searchParams]);
 
   // Helper functions for inline editing
-  const startEditing = (transactionId: number, field: string, currentValue: any) => {
+  const startEditing = (transactionId: number, field: string, currentValue: unknown) => {
     setEditingCell({ id: transactionId.toString(), field });
     setEditingData({ [field]: currentValue });
   };
 
-  const saveField = async (transactionId: number, field: string, value: any) => {
+  const saveField = async (transactionId: number, field: string, value: unknown) => {
     try {
       await updateTransaction(transactionId, { [field]: value });
       setEditingCell(null);
@@ -180,19 +183,18 @@ export const TransactionTable = () => {
 
     if (isEditing) {
       return (
-        <input
+        <Input
           type="text"
-          value={(editingData as any)[field] || value || ''}
+          value={(editingData as Record<string, unknown>)[field] as string || value || ''}
           onChange={(e) => setEditingData(prev => ({ ...prev, [field]: e.target.value }))}
-          onBlur={() => saveField(transaction.id, field, (editingData as any)[field] || value)}
+          onBlur={() => saveField(transaction.id, field, (editingData as Record<string, unknown>)[field] || value)}
           onKeyDown={(e) => {
             if (e.key === 'Enter') {
-              saveField(transaction.id, field, (editingData as any)[field] || value);
+              saveField(transaction.id, field, (editingData as Record<string, unknown>)[field] || value);
             } else if (e.key === 'Escape') {
               cancelEditing();
             }
           }}
-          className="theme-input text-sm"
           autoFocus
         />
       );
@@ -211,32 +213,26 @@ export const TransactionTable = () => {
   const EditableSelectCell = ({ transaction, field, value, options, placeholder = "Select..." }: {
     transaction: Transaction;
     field: string;
-    value: any;
-    options: { value: any; label: string }[];
+    value: unknown;
+    options: { value: unknown; label: string }[];
     placeholder?: string;
   }) => {
     const isEditing = editingCell?.id === transaction.id.toString() && editingCell?.field === field;
 
     if (isEditing) {
       return (
-        <select
-          value={(editingData as any)[field] !== undefined ? (editingData as any)[field] : value || ''}
+        <Select
+          value={(editingData as Record<string, unknown>)[field] !== undefined ? (editingData as Record<string, unknown>)[field] as string : value as string || ''}
           onChange={(e) => {
             const newValue = e.target.value || undefined;
             setEditingData(prev => ({ ...prev, [field]: newValue }));
             saveField(transaction.id, field, newValue);
           }}
           onBlur={cancelEditing}
-          className="theme-input text-sm"
+          options={options}
+          placeholder={placeholder}
           autoFocus
-        >
-          <option value="">{placeholder}</option>
-          {options.map(option => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
+        />
       );
     }
 
@@ -267,19 +263,18 @@ export const TransactionTable = () => {
 
     if (isEditing) {
       return (
-        <input
+        <Input
           type="date"
-          value={(editingData as any)[field] || value || ''}
+          value={(editingData as Record<string, unknown>)[field] as string || value || ''}
           onChange={(e) => setEditingData(prev => ({ ...prev, [field]: e.target.value }))}
-          onBlur={() => saveField(transaction.id, field, (editingData as any)[field] || value)}
+          onBlur={() => saveField(transaction.id, field, (editingData as Record<string, unknown>)[field] || value)}
           onKeyDown={(e) => {
             if (e.key === 'Enter') {
-              saveField(transaction.id, field, (editingData as any)[field] || value);
+              saveField(transaction.id, field, (editingData as Record<string, unknown>)[field] || value);
             } else if (e.key === 'Escape') {
               cancelEditing();
             }
           }}
-          className="theme-input text-sm"
           autoFocus
         />
       );
@@ -307,9 +302,10 @@ export const TransactionTable = () => {
         
         return (
           <div className="flex items-center">
-            <button
+            <Button
               onClick={() => handleSelectAll(!allSelected)}
-              className="theme-btn-icon"
+              variant="ghost"
+              size="sm"
             >
               {allSelected ? (
                 <CheckSquare className="h-4 w-4 text-blue-600" />
@@ -320,7 +316,7 @@ export const TransactionTable = () => {
               ) : (
                 <Square className="h-4 w-4 theme-text-muted" />
               )}
-            </button>
+            </Button>
           </div>
         );
       },
@@ -400,7 +396,7 @@ export const TransactionTable = () => {
         
         if (isEditing) {
           return (
-            <input
+            <Input
               type="number"
               step="0.01"
               value={editingData.amount !== undefined ? editingData.amount : value || ''}
@@ -413,7 +409,6 @@ export const TransactionTable = () => {
                   cancelEditing();
                 }
               }}
-              className="theme-input text-sm text-right"
               autoFocus
             />
           );
@@ -441,24 +436,10 @@ export const TransactionTable = () => {
         
         if (isEditing) {
           return (
-            <input
-              type="text"
-              value={editingData.tags?.join(', ') || value.join(', ')}
-              onChange={(e) => setEditingData(prev => ({ 
-                ...prev, 
-                tags: e.target.value.split(',').map(tag => tag.trim()).filter(Boolean)
-              }))}
+            <TagInput
+              tags={editingData.tags || value}
+              onTagsChange={(newTags) => setEditingData(prev => ({ ...prev, tags: newTags }))}
               onBlur={() => saveField(row.original.id, 'tags', editingData.tags || value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  saveField(row.original.id, 'tags', editingData.tags || value);
-                } else if (e.key === 'Escape') {
-                  cancelEditing();
-                }
-              }}
-              placeholder="tag1, tag2, tag3"
-              className="theme-input text-sm"
-              autoFocus
             />
           );
         }
@@ -502,7 +483,7 @@ export const TransactionTable = () => {
         
         if (isEditing) {
           return (
-            <select
+            <Select
               value={editingData.verified !== undefined ? editingData.verified.toString() : value.toString()}
               onChange={(e) => {
                 const newValue = e.target.value === 'true';
@@ -510,12 +491,9 @@ export const TransactionTable = () => {
                 saveField(row.original.id, 'verified', newValue);
               }}
               onBlur={cancelEditing}
-              className="theme-input text-sm"
+              options={[{ value: "true", label: "Verified" }, { value: "false", label: "Unverified" }]}
               autoFocus
-            >
-              <option value="true">Verified</option>
-              <option value="false">Unverified</option>
-            </select>
+            />
           );
         }
         
@@ -544,29 +522,32 @@ export const TransactionTable = () => {
         
         return (
           <div className="flex gap-1">
-            <button
+            <Button
               onClick={() => handleSplitEdit(transaction)}
-              className="p-1 text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded"
+              variant="ghost"
+              size="sm"
               title="Edit category splits"
             >
               <Split className="h-4 w-4" />
-            </button>
+            </Button>
             {transaction.suggested_category && !transaction.category_id && (
-              <button
-                onClick={() => handleAcceptSuggestion(transaction)}
-                className="p-1 text-green-600 hover:text-green-700 hover:bg-green-50 rounded"
-                title="Accept suggested category"
-              >
-                <Sparkles className="h-4 w-4" />
-              </button>
+              <Button
+              onClick={() => handleAcceptSuggestion(transaction)}
+              variant="ghost"
+              size="sm"
+              title="Accept suggested category"
+            >
+              <Sparkles className="h-4 w-4" />
+            </Button>
             )}
-            <button
+            <Button
               onClick={() => handleAutoCategorize(transaction)}
-              className="p-1 text-orange-600 hover:text-orange-700 hover:bg-orange-50 rounded"
+              variant="ghost"
+              size="sm"
               title="Auto-categorize"
             >
               <Sparkles className="h-4 w-4" />
-            </button>
+            </Button>
           </div>
         );
       },
@@ -612,7 +593,7 @@ export const TransactionTable = () => {
     try {
       const response = await apiClient.uploadFile(file, password, selectedUploadAccount || undefined);
       return response;
-    } catch (error: any) {
+    } catch (error: unknown) {
       const errorMessage = error.response?.data?.error || 'Upload failed';
       
       // Check if it's a password-related error
@@ -628,7 +609,7 @@ export const TransactionTable = () => {
     try {
       const result = await uploadFileToAPI(file, password);
       return result;
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (error.message === 'PASSWORD_REQUIRED') {
         throw error; // Re-throw to trigger password prompt
       }
@@ -651,7 +632,7 @@ export const TransactionTable = () => {
       // Refresh transactions to show new data
       await fetchTransactions();
       setShowUploadModal(false);
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (error.message === 'PASSWORD_REQUIRED') {
         setShowPasswordPrompt({ file, filename: file.name });
       } else {
@@ -674,7 +655,7 @@ export const TransactionTable = () => {
       // Refresh transactions to show new data
       await fetchTransactions();
       setShowUploadModal(false);
-    } catch (error: any) {
+    } catch (error: unknown) {
       if (error.message === 'PASSWORD_REQUIRED') {
         // Still need password - show prompt again
         setShowPasswordPrompt({ file, filename: file.name });
@@ -1022,69 +1003,70 @@ export const TransactionTable = () => {
           <p className="theme-text-secondary mt-1">View, edit, and manage all your transactions.</p>
         </div>
         <div className="flex space-x-2">
-          <button
+          <Button
             onClick={() => setShowAddTransactionModal(true)}
-            className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-lg hover:bg-blue-700 shadow-sm"
+            size="sm"
           >
             <Plus className="w-5 h-5 mr-2" />
             Add Transaction
-          </button>
-          <button
+          </Button>
+          <Button
             onClick={() => setShowUploadModal(true)}
-            className="theme-btn-secondary inline-flex items-center shadow-sm"
+            variant="secondary"
+            size="sm"
           >
             <Upload className="w-5 h-5 mr-2" />
             Upload
-          </button>
-          <button
-            onClick={() => setShowFilters(!showFilters)}
-            className={`inline-flex items-center px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 shadow-sm ${showFilters ? 'text-blue-700 bg-blue-100 dark:bg-blue-900 dark:text-blue-300 border border-blue-200 dark:border-blue-700' : 'theme-btn-secondary'}`}>
-            <Filter className="w-5 h-5 mr-2" />
-            Filters
-          </button>
+          </Button>
+          <Button
+              onClick={() => setShowFilters(!showFilters)}
+              variant={showFilters ? 'primary' : 'secondary'}
+              size="sm"
+            >
+              <Filter className="w-5 h-5 mr-2" />
+              Filters
+            </Button>
         </div>
       </div>
 
       {showFilters && (
         <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 mb-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <input
+            <Input
               type="text"
               placeholder="Search descriptions..."
               value={(table.getColumn('description')?.getFilterValue() as string) ?? ''}
               onChange={(e) => table.getColumn('description')?.setFilterValue(e.target.value)}
-              className="theme-input"
             />
-            <select
+            <Select
               value={(table.getColumn('account_id')?.getFilterValue() as string) ?? ''}
               onChange={(e) => table.getColumn('account_id')?.setFilterValue(e.target.value || undefined)}
               className="theme-input"
-            >
-              <option value="">All accounts</option>
-              {state.accounts.map(account => (
-                <option key={account.id} value={account.id}>{account.name}</option>
-              ))}
-            </select>
-            <select
+              options={[
+                { value: "", label: "All accounts" },
+                ...state.accounts.map(account => ({ value: account.id, label: account.name }))
+              ]}
+            />
+            <Select
               value={(table.getColumn('category_id')?.getFilterValue() as string) ?? ''}
               onChange={(e) => table.getColumn('category_id')?.setFilterValue(e.target.value || undefined)}
               className="theme-input"
-            >
-              <option value="">All categories</option>
-              {state.categories.map(category => (
-                <option key={category.id} value={category.id}>{category.name}</option>
-              ))}
-            </select>
-            <button
+              options={[
+                { value: "", label: "All categories" },
+                ...state.categories.map(category => ({ value: category.id, label: category.name }))
+              ]}
+            />
+            <Button
               onClick={() => {
                 table.getColumn('description')?.setFilterValue('');
                 table.getColumn('account_id')?.setFilterValue(undefined);
                 table.getColumn('category_id')?.setFilterValue(undefined);
               }}
-              className="text-sm theme-text-muted hover:theme-text-primary underline"
+              variant="ghost"
+              size="sm"
             >
               Clear Filters
-            </button>
+            </Button>
           </div>
         </div>
       )}
@@ -1151,12 +1133,13 @@ export const TransactionTable = () => {
             />
             
             <div className="flex justify-end space-x-2">
-              <button
-                onClick={() => setSplitModalOpen(false)}
-                className="theme-btn-secondary"
-              >
-                Close
-              </button>
+              <Button
+              onClick={() => setSplitModalOpen(false)}
+              variant="secondary"
+              size="md"
+            >
+              Close
+            </Button>
             </div>
           </div>
         )}
@@ -1181,21 +1164,15 @@ export const TransactionTable = () => {
           <div className="space-y-3">
             {/* Account Selection */}
             <div>
-              <label className="theme-form-label">
-                Select Account for Transactions
-              </label>
-              <select
+              <Select
+                label="Select Account for Transactions"
                 value={selectedUploadAccount || ''}
                 onChange={(e) => setSelectedUploadAccount(e.target.value ? Number(e.target.value) : null)}
-                className="theme-input"
-              >
-                <option value="">Select an account...</option>
-                {state.accounts.map((account) => (
-                  <option key={account.id} value={account.id}>
-                    {account.name} ({account.account_type}) - {formatCurrency(parseFloat(account.balance || '0'), authState.user)}
-                  </option>
-                ))}
-              </select>
+                options={[
+                  { value: "", label: "Select an account..." },
+                  ...state.accounts.map((account) => ({ value: account.id, label: `${account.name} (${account.account_type}) - ${formatCurrency(parseFloat(account.balance || '0'), authState.user)}` }))
+                ]}
+              />
               {state.accounts.length === 0 && (
                 <p className="text-sm text-red-500 mt-1">
                   No accounts available. Please create an account first.
@@ -1272,81 +1249,62 @@ export const TransactionTable = () => {
             <div className="space-y-4">
               {/* Account Selection */}
               <div>
-                <label className="theme-form-label">
-                  Change Account
-                </label>
-                <select
+                <Select
+                  label="Change Account"
                   value={bulkEditData.accountId || ''}
                   onChange={(e) => setBulkEditData(prev => ({ 
                     ...prev, 
                     accountId: e.target.value ? Number(e.target.value) : undefined 
                   }))}
-                  className="theme-input"
-                >
-                  <option value="">Keep current accounts</option>
-                  {state.accounts.map((account) => (
-                    <option key={account.id} value={account.id}>
-                      {account.name} ({account.account_type}) - {formatCurrency(parseFloat(account.balance || '0'), authState.user)}
-                    </option>
-                  ))}
-                </select>
+                  options={[
+                    { value: "", label: "Keep current accounts" },
+                    ...state.accounts.map((account) => ({ value: account.id, label: `${account.name} (${account.account_type}) - ${formatCurrency(parseFloat(account.balance || '0'), authState.user)}` }))
+                  ]}
+                />
               </div>
 
               {/* Category Selection */}
               <div>
-                <label className="theme-form-label">
-                  Change Category
-                </label>
-                <select
+                <Select
+                  label="Change Category"
                   value={bulkEditData.categoryId || ''}
                   onChange={(e) => setBulkEditData(prev => ({ 
                     ...prev, 
                     categoryId: e.target.value || undefined 
                   }))}
-                  className="theme-input"
-                >
-                  <option value="">Keep current categories</option>
-                  {state.categories.map((category) => (
-                    <option key={category.id} value={category.id}>
-                      {category.name}
-                    </option>
-                  ))}
-                </select>
+                  options={[
+                    { value: "", label: "Keep current categories" },
+                    ...state.categories.map((category) => ({ value: category.id, label: category.name }))
+                  ]}
+                />
               </div>
 
               {/* Verification Status */}
               <div>
-                <label className="theme-form-label">
-                  Verification Status
-                </label>
-                <select
+                <Select
+                  label="Verification Status"
                   value={bulkEditData.verified === undefined ? '' : bulkEditData.verified.toString()}
                   onChange={(e) => setBulkEditData(prev => ({ 
                     ...prev, 
                     verified: e.target.value === '' ? undefined : e.target.value === 'true'
                   }))}
-                  className="theme-input"
-                >
-                  <option value="">Keep current status</option>
-                  <option value="true">Mark as Verified</option>
-                  <option value="false">Mark as Unverified</option>
-                </select>
+                  options={[
+                    { value: "", label: "Keep current status" },
+                    { value: "true", label: "Mark as Verified" },
+                    { value: "false", label: "Mark as Unverified" },
+                  ]}
+                />
               </div>
 
               {/* Tags Addition */}
               <div>
-                <label className="theme-form-label">
-                  Add Tags (comma-separated)
-                </label>
-                <input
-                  type="text"
-                  value={bulkEditData.tags?.join(', ') || ''}
-                  onChange={(e) => setBulkEditData(prev => ({ 
+                <TagInput
+                  tags={bulkEditData.tags || []}
+                  onTagsChange={(newTags) => setBulkEditData(prev => ({ 
                     ...prev, 
-                    tags: e.target.value ? e.target.value.split(',').map(tag => tag.trim()).filter(tag => tag) : undefined
+                    tags: newTags
                   }))}
                   placeholder="e.g. business, travel, important"
-                  className="theme-input"
                 />
                 <p className="text-xs theme-text-muted mt-1">
                   These tags will be added to existing tags (duplicates will be ignored)
@@ -1363,19 +1321,19 @@ export const TransactionTable = () => {
           </div>
 
           <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200 dark:border-gray-700">
-            <button
+            <Button
               onClick={handleBulkCancel}
-              className="theme-btn-secondary"
+              variant="secondary"
+              size="md"
             >
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
               onClick={handleBulkSave}
               disabled={!bulkEditData.accountId && !bulkEditData.categoryId}
-              className="px-4 py-2 text-sm font-medium text-white bg-green-600 border border-transparent rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Apply Changes
-            </button>
+            </Button>
           </div>
         </div>
       </Modal>
@@ -1388,124 +1346,93 @@ export const TransactionTable = () => {
       >
         <div className="space-y-4">
           <div>
-            <label className="theme-form-label">
-              Description *
-            </label>
-            <input
+            <Input
+              label="Description *"
               type="text"
               value={newTransactionData.description}
               onChange={(e) => setNewTransactionData(prev => ({ ...prev, description: e.target.value }))}
               placeholder="Transaction description"
-              className="theme-input"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="theme-form-label">
-                Amount *
-              </label>
-              <input
+              <Input
+                label="Amount *"
                 type="number"
                 step="0.01"
                 value={newTransactionData.amount}
                 onChange={(e) => setNewTransactionData(prev => ({ ...prev, amount: e.target.value }))}
                 placeholder="0.00"
-                className="theme-input"
               />
             </div>
 
             <div>
-              <label className="theme-form-label">
-                Date *
-              </label>
-              <input
+              <Input
+                label="Date *"
                 type="date"
                 value={newTransactionData.date}
                 onChange={(e) => setNewTransactionData(prev => ({ ...prev, date: e.target.value }))}
-                className="theme-input"
               />
             </div>
           </div>
 
           <div>
-            <label className="theme-form-label">
-              Account *
-            </label>
-            <select
+            <Select
+              label="Account *"
               value={newTransactionData.accountId || ''}
               onChange={(e) => setNewTransactionData(prev => ({ ...prev, accountId: e.target.value ? Number(e.target.value) : null }))}
-              className="theme-input"
-            >
-              <option value="">Select an account</option>
-              {state.accounts.map((account) => (
-                <option key={account.id} value={account.id}>
-                  {account.name} ({account.account_type})
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="theme-form-label">
-              Category
-            </label>
-            <select
-              value={newTransactionData.categoryId}
-              onChange={(e) => setNewTransactionData(prev => ({ ...prev, categoryId: e.target.value }))}
-              className="theme-input"
-            >
-              <option value="">No category</option>
-              {state.categories.map((category) => (
-                <option key={category.id} value={category.id}>
-                  {category.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="theme-form-label">
-              Tags (comma-separated)
-            </label>
-            <input
-              type="text"
-              value={newTransactionData.tags.join(', ')}
-              onChange={(e) => setNewTransactionData(prev => ({ 
-                ...prev, 
-                tags: e.target.value ? e.target.value.split(',').map(tag => tag.trim()).filter(tag => tag) : []
-              }))}
-              placeholder="e.g. business, travel, important"
-              className="theme-input"
+              options={[
+                { value: "", label: "Select an account" },
+                ...state.accounts.map((account) => ({ value: account.id, label: `${account.name} (${account.account_type})` }))
+              ]}
             />
           </div>
 
           <div>
-            <label className="theme-form-label">
-              Notes
-            </label>
-            <textarea
+            <Select
+              label="Category"
+              value={newTransactionData.categoryId}
+              onChange={(e) => setNewTransactionData(prev => ({ ...prev, categoryId: e.target.value }))}
+              options={[
+                { value: "", label: "No category" },
+                ...state.categories.map((category) => ({ value: category.id, label: category.name }))
+              ]}
+            />
+          </div>
+
+          <div>
+            <TagInput
+              tags={newTransactionData.tags}
+              onTagsChange={(newTags) => setNewTransactionData(prev => ({ ...prev, tags: newTags }))}
+              placeholder="e.g. business, travel, important"
+            />
+          </div>
+
+          <div>
+            <Input
+              label="Notes"
               value={newTransactionData.notes}
               onChange={(e) => setNewTransactionData(prev => ({ ...prev, notes: e.target.value }))}
               placeholder="Additional notes..."
+              multiline
               rows={3}
-              className="theme-input"
             />
           </div>
 
           <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200 dark:border-gray-700">
-            <button
+            <Button
               onClick={() => setShowAddTransactionModal(false)}
-              className="theme-btn-secondary"
+              variant="secondary"
+              size="md"
             >
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
               onClick={handleAddTransaction}
-              className="px-4 py-2 text-sm font-medium text-white bg-green-600 border border-transparent rounded-md hover:bg-green-700"
             >
               Add Transaction
-            </button>
+            </Button>
           </div>
         </div>
       </Modal>
@@ -1530,63 +1457,46 @@ export const TransactionTable = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="theme-form-label">
-                Default Account *
-              </label>
-              <select
+              <Select
+                label="Default Account *"
                 value={bulkTransactionData.defaultAccountId || ''}
                 onChange={(e) => setBulkTransactionData(prev => ({ 
                   ...prev, 
                   defaultAccountId: e.target.value ? Number(e.target.value) : null 
                 }))}
-                className="theme-input"
+                options={[
+                  { value: "", label: "Select account..." },
+                  ...state.accounts.map(account => ({ value: account.id, label: `${account.name} (${account.account_type})` }))
+                ]}
                 required
-              >
-                <option value="">Select account...</option>
-                {state.accounts.map(account => (
-                  <option key={account.id} value={account.id}>
-                    {account.name} ({account.account_type})
-                  </option>
-                ))}
-              </select>
+              />
             </div>
 
             <div>
-              <label className="theme-form-label">
-                Default Category
-              </label>
-              <select
+              <Select
+                label="Default Category"
                 value={bulkTransactionData.defaultCategoryId}
                 onChange={(e) => setBulkTransactionData(prev => ({ ...prev, defaultCategoryId: e.target.value }))}
-                className="theme-input"
-              >
-                <option value="">No category</option>
-                {state.categories.map(category => (
-                  <option key={category.id} value={category.id}>
-                    {category.name}
-                  </option>
-                ))}
-              </select>
+                options={[
+                  { value: "", label: "No category" },
+                  ...state.categories.map(category => ({ value: category.id, label: category.name }))
+                ]}
+              />
             </div>
           </div>
 
           <div>
-            <label className="theme-form-label">
-              Default Date
-            </label>
-            <input
+            <Input
+              label="Default Date"
               type="date"
               value={bulkTransactionData.defaultDate}
               onChange={(e) => setBulkTransactionData(prev => ({ ...prev, defaultDate: e.target.value }))}
-              className="theme-input"
             />
           </div>
 
           <div>
-            <label className="theme-form-label">
-              Transactions *
-            </label>
-            <textarea
+            <Input
+              label="Transactions *"
               value={bulkTransactionData.transactions}
               onChange={(e) => setBulkTransactionData(prev => ({ ...prev, transactions: e.target.value }))}
               placeholder={`Examples:
@@ -1594,8 +1504,8 @@ Coffee shop, -4.50, 2024-01-15, Food
 Grocery shopping | -85.20 | 2024-01-14 | Groceries
 -50 Gas station
 Salary deposit, 2500.00, 2024-01-01, Income`}
+              multiline
               rows={8}
-              className="theme-textarea font-mono text-sm"
               required
             />
             <p className="text-xs theme-text-muted mt-1">
@@ -1604,18 +1514,18 @@ Salary deposit, 2500.00, 2024-01-01, Income`}
           </div>
 
           <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200 dark:border-gray-700">
-            <button
+            <Button
               onClick={() => setShowBulkAddModal(false)}
-              className="theme-btn-secondary"
+              variant="secondary"
+              size="md"
             >
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
               onClick={handleBulkAddTransactions}
-              className="px-4 py-2 text-sm font-medium text-white bg-green-600 border border-transparent rounded-md hover:bg-green-700"
             >
               Create Transactions
-            </button>
+            </Button>
           </div>
         </div>
       </Modal>

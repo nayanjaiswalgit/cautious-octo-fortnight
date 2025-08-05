@@ -19,7 +19,11 @@ import { useData } from '../contexts/DataContext';
 import { useAuth } from '../contexts/AuthContext';
 import { formatCurrency } from '../utils/preferences';
 import { Modal } from './Modal';
+import { ProgressBar } from './ProgressBar';
+import { ColorPickerButton } from './ColorPickerButton';
 import type { Goal } from '../types';
+import { Input } from './Input';
+import { Select } from './Select';
 
 interface GoalFormData {
   name: string;
@@ -168,7 +172,7 @@ export const Goals = () => {
       }
 
       handleCloseModal();
-    } catch (error) {
+    } catch {
       console.error('Failed to save goal:', error);
       alert('Failed to save goal. Please try again.');
     } finally {
@@ -183,7 +187,7 @@ export const Goals = () => {
 
     try {
       await deleteGoal(goal.id);
-    } catch (error) {
+    } catch {
       console.error('Failed to delete goal:', error);
       alert('Failed to delete goal. Please try again.');
     }
@@ -197,7 +201,7 @@ export const Goals = () => {
       setShowProgressModal(false);
       setProgressGoal(null);
       setProgressAmount('');
-    } catch (error) {
+    } catch {
       console.error('Failed to update goal progress:', error);
       alert('Failed to update goal progress. Please try again.');
     }
@@ -206,7 +210,7 @@ export const Goals = () => {
   const handleToggleStatus = async (goal: Goal, newStatus: 'active' | 'paused' | 'cancelled') => {
     try {
       await toggleGoalStatus(goal.id, newStatus);
-    } catch (error) {
+    } catch {
       console.error('Failed to toggle goal status:', error);
       alert('Failed to update goal status. Please try again.');
     }
@@ -357,12 +361,10 @@ export const Goals = () => {
                             </span>
                           </div>
                           <div className="w-full bg-gray-200 rounded-full h-3">
-                            <div
+                            <ProgressBar
+                              percentage={progressPercent}
                               className="h-3 rounded-full transition-all duration-500"
-                              style={{ 
-                                width: `${progressPercent}%`,
-                                backgroundColor: goal.color
-                              }}
+                              style={{ backgroundColor: goal.color }}
                             />
                           </div>
                         </div>
@@ -528,19 +530,14 @@ export const Goals = () => {
       >
         <form onSubmit={handleSubmit} className="space-y-6 p-6">
           {/* Goal Name */}
-          <div>
-            <label className="theme-form-label">
-              Goal Name *
-            </label>
-            <input
-              type="text"
-              value={formData.name}
-              onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-              className="theme-input"
-              placeholder="e.g., Emergency Fund, Vacation, New Car"
-              required
-            />
-          </div>
+          <Input
+            label="Goal Name"
+            type="text"
+            value={formData.name}
+            onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+            placeholder="e.g., Emergency Fund, Vacation, New Car"
+            required
+          />
 
           {/* Goal Type */}
           <div>
@@ -554,7 +551,7 @@ export const Goals = () => {
                     type="radio"
                     value={type.value}
                     checked={formData.goal_type === type.value}
-                    onChange={(e) => setFormData(prev => ({ ...prev, goal_type: e.target.value as any }))}
+                    onChange={(e) => setFormData(prev => ({ ...prev, goal_type: e.target.value as GoalFormData['goal_type'] }))}
                     className="sr-only"
                   />
                   <div className={`flex-1 p-4 border-2 rounded-lg transition-colors duration-200 ${
@@ -583,94 +580,66 @@ export const Goals = () => {
 
           {/* Target Amount and Currency */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            <div>
-              <label className="theme-form-label">
-                Target Amount <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="number"
-                step="0.01"
-                value={formData.target_amount}
-                onChange={(e) => setFormData(prev => ({ ...prev, target_amount: e.target.value }))}
-                className="theme-input"
-                placeholder="1000.00"
-                required
-              />
-            </div>
-            <div>
-              <label className="theme-form-label">
-                Currency <span className="text-red-500">*</span>
-              </label>
-              <select
-                value={formData.currency}
-                onChange={(e) => setFormData(prev => ({ ...prev, currency: e.target.value }))}
-                className="theme-input"
-              >
-                <option value="USD">USD - US Dollar</option>
-                <option value="EUR">EUR - Euro</option>
-                <option value="GBP">GBP - British Pound</option>
-                <option value="JPY">JPY - Japanese Yen</option>
-                <option value="CAD">CAD - Canadian Dollar</option>
-                <option value="AUD">AUD - Australian Dollar</option>
-              </select>
-            </div>
+            <Input
+              label="Target Amount"
+              type="number"
+              step="0.01"
+              value={formData.target_amount}
+              onChange={(e) => setFormData(prev => ({ ...prev, target_amount: e.target.value }))}
+              placeholder="1000.00"
+              required
+            />
+            <Select
+              label="Currency"
+              value={formData.currency}
+              onChange={(e) => setFormData(prev => ({ ...prev, currency: e.target.value }))}
+              options={[
+                { value: "USD", label: "USD - US Dollar" },
+                { value: "EUR", label: "EUR - Euro" },
+                { value: "GBP", label: "GBP - British Pound" },
+                { value: "JPY", label: "JPY - Japanese Yen" },
+                { value: "CAD", label: "CAD - Canadian Dollar" },
+                { value: "AUD", label: "AUD - Australian Dollar" },
+              ]}
+            />
           </div>
 
           {/* Current Amount */}
-          <div>
-            <label className="theme-form-label">
-              Current Amount
-            </label>
-            <input
-              type="number"
-              step="0.01"
-              value={formData.current_amount}
-              onChange={(e) => setFormData(prev => ({ ...prev, current_amount: e.target.value }))}
-              className="theme-input"
-              placeholder="0.00"
-            />
-          </div>
+          <Input
+            label="Current Amount"
+            type="number"
+            step="0.01"
+            value={formData.current_amount}
+            onChange={(e) => setFormData(prev => ({ ...prev, current_amount: e.target.value }))}
+            placeholder="0.00"
+          />
 
           {/* Dates */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            <div>
-              <label className="theme-form-label">
-                Start Date <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="date"
-                value={formData.start_date}
-                onChange={(e) => setFormData(prev => ({ ...prev, start_date: e.target.value }))}
-                className="theme-input"
-                required
-              />
-            </div>
-            <div>
-              <label className="theme-form-label">
-                Target Date
-              </label>
-              <input
-                type="date"
-                value={formData.target_date}
-                onChange={(e) => setFormData(prev => ({ ...prev, target_date: e.target.value }))}
-                className="theme-input"
-              />
-            </div>
+            <Input
+              label="Start Date"
+              type="date"
+              value={formData.start_date}
+              onChange={(e) => setFormData(prev => ({ ...prev, start_date: e.target.value }))}
+              required
+            />
+            <Input
+              label="Target Date"
+              type="date"
+              value={formData.target_date}
+              onChange={(e) => setFormData(prev => ({ ...prev, target_date: e.target.value }))}
+            />
           </div>
 
           {/* Description */}
-          <div>
-            <label className="theme-form-label">
-              Description
-            </label>
-            <textarea
-              value={formData.description}
-              onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-              className="theme-input"
-              rows={3}
-              placeholder="Optional: Add details about your goal..."
-            />
-          </div>
+          <Input
+            label="Description"
+            as="textarea"
+            value={formData.description}
+            onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+            rows={3}
+            placeholder="Optional: Add details about your goal..."
+          />
 
           {/* Color and Priority */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -680,32 +649,25 @@ export const Goals = () => {
               </label>
               <div className="flex space-x-2">
                 {colors.map(color => (
-                  <button
+                  <ColorPickerButton
                     key={color}
-                    type="button"
+                    color={color}
+                    isSelected={formData.color === color}
                     onClick={() => setFormData(prev => ({ ...prev, color }))}
-                    className={`w-10 h-10 rounded-full border-2 ${
-                      formData.color === color ? 'border-blue-500 ring-2 ring-blue-200' : 'border-gray-300'
-                    }`}
-                    style={{ backgroundColor: color }}
                   />
                 ))}
               </div>
             </div>
-            <div>
-              <label className="theme-form-label">
-                Priority
-              </label>
-              <select
-                value={formData.priority}
-                onChange={(e) => setFormData(prev => ({ ...prev, priority: Number(e.target.value) }))}
-                className="theme-input"
-              >
-                <option value={0}>Normal</option>
-                <option value={1}>High</option>
-                <option value={2}>Urgent</option>
-              </select>
-            </div>
+            <Select
+              label="Priority"
+              value={formData.priority}
+              onChange={(e) => setFormData(prev => ({ ...prev, priority: Number(e.target.value) }))}
+              options={[
+                { value: 0, label: "Normal" },
+                { value: 1, label: "High" },
+                { value: 2, label: "Urgent" },
+              ]}
+            />
           </div>
 
           {/* Form Actions */}

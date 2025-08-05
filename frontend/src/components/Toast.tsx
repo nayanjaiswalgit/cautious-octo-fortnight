@@ -78,13 +78,14 @@ export const Toast: React.FC<ToastProps> = ({
           {message && <p className="mt-1 text-xs theme-text-secondary">{message}</p>}
         </div>
         <div className="ml-4 flex-shrink-0 flex">
-          <button
+          <Button
             onClick={() => onClose(id)}
-            className="inline-flex theme-text-muted hover:theme-text-secondary focus:outline-none transition ease-in-out duration-150 p-1 rounded-full theme-bg-hover"
+            variant="ghost"
+            size="sm"
             aria-label="Close notification"
           >
             <X className="h-5 w-5" />
-          </button>
+          </Button>
         </div>
       </div>
     </div>

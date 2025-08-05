@@ -15,6 +15,148 @@ import type {
   LendingTransaction
 } from '../types';
 
+// Additional interfaces for API responses
+interface UploadSession {
+  id: number;
+  filename: string;
+  status: string;
+  total_transactions: number;
+  created_at: string;
+  updated_at: string;
+}
+
+interface CsvFormat {
+  headers: string[];
+  sample_data: Record<string, string>[];
+  required_fields: string[];
+  optional_fields: string[];
+}
+
+interface JsonFormat {
+  schema: Record<string, unknown>;
+  sample_data: Record<string, unknown>;
+  required_fields: string[];
+  optional_fields: string[];
+}
+
+interface Subscription {
+  id: number;
+  name: string;
+  amount: string;
+  billing_cycle: 'monthly' | 'yearly' | 'weekly' | 'daily';
+  next_billing_date: string;
+  status: 'active' | 'paused' | 'cancelled';
+  category_id?: string;
+  account_id: number;
+  created_at: string;
+  updated_at: string;
+}
+
+interface ProcessingRule {
+  id: number;
+  name: string;
+  description?: string;
+  conditions: ProcessingRuleCondition[];
+  actions: ProcessingRuleAction[];
+  is_active: boolean;
+  priority: number;
+  created_at: string;
+  updated_at: string;
+}
+
+interface ProcessingRuleCondition {
+  field: string;
+  operator: string;
+  value: string;
+}
+
+interface ProcessingRuleAction {
+  field: string;
+  value: string;
+}
+
+interface GmailAccount {
+  id: number;
+  email: string;
+  is_active: boolean;
+  last_sync: string;
+  sync_status: 'idle' | 'syncing' | 'error';
+  total_emails_processed: number;
+  created_at: string;
+  updated_at: string;
+}
+
+interface EmailTemplate {
+  id: number;
+  name: string;
+  subject_pattern: string;
+  body_pattern: string;
+  sender_pattern?: string;
+  category_id?: string;
+  confidence_threshold: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+interface ExtractedTransaction {
+  id: number;
+  gmail_message_id: string;
+  merchant_name?: string;
+  amount?: string;
+  date?: string;
+  description?: string;
+  category_id?: string;
+  confidence_score: number;
+  status: 'pending' | 'approved' | 'rejected';
+  raw_data: Record<string, unknown>;
+  created_at: string;
+}
+
+interface TransactionSuggestion {
+  id: number;
+  transaction_id: number;
+  suggested_category_id?: string;
+  suggested_merchant?: string;
+  confidence_score: number;
+  reason: string;
+}
+
+
+interface SubscriptionSummary {
+  total_active: number;
+  total_monthly_cost: string;
+  total_yearly_cost: string;
+  upcoming_renewals: number;
+  paused_subscriptions: number;
+}
+
+interface LendingSummary {
+  total_lent: string;
+  total_borrowed: string;
+  total_outstanding_lent: string;
+  total_outstanding_borrowed: string;
+  overdue_count: number;
+}
+
+interface GroupExpenseBalance {
+  participant_id: number;
+  participant_name: string;
+  total_share: string;
+  total_settled: string;
+  balance: string;
+}
+
+interface GmailSyncStatus {
+  account_id: number;
+  account_email: string;
+  status: 'idle' | 'syncing' | 'completed' | 'error';
+  last_sync: string;
+  emails_processed: number;
+  transactions_extracted: number;
+  error_message?: string;
+}
+
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
 
 class ApiClient {
@@ -60,7 +202,7 @@ class ApiClient {
               originalRequest.headers.Authorization = `Bearer ${token}`;
             }
             return this.client(originalRequest);
-          } catch (refreshError) {
+          } catch {
             this.logout();
             // Let the auth context handle the redirect to login
           }
@@ -342,7 +484,7 @@ class ApiClient {
     tags?: string[];
     verified?: boolean;
   }): Promise<{ updated_count: number }> {
-    const data: any = { transaction_ids: transactionIds };
+    const data: Record<string, unknown> = { transaction_ids: transactionIds };
     
     if (updates.accountId !== undefined) data.account_id = updates.accountId;
     if (updates.categoryId !== undefined) data.category_id = updates.categoryId;
@@ -353,7 +495,7 @@ class ApiClient {
     return response.data;
   }
 
-  async suggestTransactionLinks(id: number): Promise<{ suggestions: any[] }> {
+  async suggestTransactionLinks(id: number): Promise<{ suggestions: TransactionSuggestion[] }> {
     const response = await this.client.get(`/transactions/${id}/suggest_links/`);
     return response.data;
   }
@@ -407,27 +549,27 @@ class ApiClient {
     return response.data;
   }
 
-  async getCsvFormat(): Promise<any> {
+  async getCsvFormat(): Promise<CsvFormat> {
     const response = await this.client.get('/upload/csv_format/');
     return response.data;
   }
 
-  async getJsonFormat(): Promise<any> {
+  async getJsonFormat(): Promise<JsonFormat> {
     const response = await this.client.get('/upload/json_format/');
     return response.data;
   }
 
-  async getUploadSessions(): Promise<any[]> {
+  async getUploadSessions(): Promise<UploadSession[]> {
     const response = await this.client.get('/upload/sessions/');
     return response.data.sessions || [];
   }
 
-  async getUploadStatus(sessionId: number): Promise<any> {
+  async getUploadStatus(sessionId: number): Promise<UploadSession> {
     const response = await this.client.get(`/upload/${sessionId}/status/`);
     return response.data;
   }
 
-  async updateUploadSession(sessionId: number, data: { filename?: string }): Promise<any> {
+  async updateUploadSession(sessionId: number, data: { filename?: string }): Promise<UploadSession> {
     const response = await this.client.patch(`/upload/${sessionId}/`, data);
     return response.data;
   }
@@ -524,7 +666,7 @@ class ApiClient {
     await this.client.delete(`/group-expenses/${id}/`);
   }
 
-  async addGroupExpenseParticipant(expenseId: number, participantId: number, shareAmount: string): Promise<any> {
+  async addGroupExpenseParticipant(expenseId: number, participantId: number, shareAmount: string): Promise<GroupExpense> {
     const response = await this.client.post(`/group-expenses/${expenseId}/add_participant/`, {
       participant_id: participantId,
       share_amount: shareAmount
@@ -541,7 +683,7 @@ class ApiClient {
     return response.data;
   }
 
-  async getGroupExpenseBalances(expenseId: number): Promise<any> {
+  async getGroupExpenseBalances(expenseId: number): Promise<GroupExpenseBalance[]> {
     const response = await this.client.get(`/group-expenses/${expenseId}/balances/`);
     return response.data;
   }
@@ -580,7 +722,7 @@ class ApiClient {
     return response.data;
   }
 
-  async getLendingSummary(): Promise<any> {
+  async getLendingSummary(): Promise<LendingSummary> {
     const response = await this.client.get('/lending-transactions/summary/');
     return response.data;
   }
@@ -641,17 +783,17 @@ class ApiClient {
   }
 
   // Subscriptions
-  async getSubscriptions(): Promise<any[]> {
+  async getSubscriptions(): Promise<Subscription[]> {
     const response = await this.client.get('/subscriptions/');
     return response.data.results || response.data;
   }
 
-  async createSubscription(subscription: any): Promise<any> {
+  async createSubscription(subscription: Omit<Subscription, 'id' | 'created_at' | 'updated_at'>): Promise<Subscription> {
     const response = await this.client.post('/subscriptions/', subscription);
     return response.data;
   }
 
-  async updateSubscription(id: number, subscription: Partial<any>): Promise<any> {
+  async updateSubscription(id: number, subscription: Partial<Subscription>): Promise<Subscription> {
     const response = await this.client.patch(`/subscriptions/${id}/`, subscription);
     return response.data;
   }
@@ -660,62 +802,62 @@ class ApiClient {
     await this.client.delete(`/subscriptions/${id}/`);
   }
 
-  async detectSubscriptions(lookbackDays: number = 365): Promise<any> {
+  async detectSubscriptions(lookbackDays: number = 365): Promise<{ detected_subscriptions: Partial<Subscription>[]; count: number }> {
     const response = await this.client.post('/subscriptions/detect_subscriptions/', {
       lookback_days: lookbackDays
     });
     return response.data;
   }
 
-  async createSubscriptionFromDetection(detectionData: any): Promise<any> {
+  async createSubscriptionFromDetection(detectionData: Partial<Subscription>): Promise<Subscription> {
     const response = await this.client.post('/subscriptions/create_from_detection/', {
       detection_data: detectionData
     });
     return response.data;
   }
 
-  async getSubscriptionSummary(): Promise<any> {
+  async getSubscriptionSummary(): Promise<SubscriptionSummary> {
     const response = await this.client.get('/subscriptions/summary/');
     return response.data;
   }
 
-  async getUpcomingRenewals(days: number = 7): Promise<any[]> {
+  async getUpcomingRenewals(days: number = 7): Promise<Subscription[]> {
     const response = await this.client.get(`/subscriptions/upcoming_renewals/?days=${days}`);
     return response.data;
   }
 
-  async getMissedPayments(graceDays: number = 5): Promise<any[]> {
+  async getMissedPayments(graceDays: number = 5): Promise<Subscription[]> {
     const response = await this.client.get(`/subscriptions/missed_payments/?grace_days=${graceDays}`);
     return response.data;
   }
 
-  async pauseSubscription(id: number): Promise<any> {
+  async pauseSubscription(id: number): Promise<Subscription> {
     const response = await this.client.post(`/subscriptions/${id}/pause/`);
     return response.data;
   }
 
-  async resumeSubscription(id: number): Promise<any> {
+  async resumeSubscription(id: number): Promise<Subscription> {
     const response = await this.client.post(`/subscriptions/${id}/resume/`);
     return response.data;
   }
 
-  async cancelSubscription(id: number): Promise<any> {
+  async cancelSubscription(id: number): Promise<Subscription> {
     const response = await this.client.post(`/subscriptions/${id}/cancel/`);
     return response.data;
   }
 
   // Processing Rules
-  async getProcessingRules(): Promise<any[]> {
+  async getProcessingRules(): Promise<ProcessingRule[]> {
     const response = await this.client.get('/processing-rules/');
     return response.data.results || response.data;
   }
 
-  async createProcessingRule(rule: any): Promise<any> {
+  async createProcessingRule(rule: Omit<ProcessingRule, 'id' | 'created_at' | 'updated_at'>): Promise<ProcessingRule> {
     const response = await this.client.post('/processing-rules/', rule);
     return response.data;
   }
 
-  async updateProcessingRule(id: number, rule: Partial<any>): Promise<any> {
+  async updateProcessingRule(id: number, rule: Partial<ProcessingRule>): Promise<ProcessingRule> {
     const response = await this.client.patch(`/processing-rules/${id}/`, rule);
     return response.data;
   }
@@ -724,28 +866,28 @@ class ApiClient {
     await this.client.delete(`/processing-rules/${id}/`);
   }
 
-  async getProcessingRuleChoices(): Promise<any> {
+  async getProcessingRuleChoices(): Promise<{ field_choices: Record<string, string[]>; operator_choices: Record<string, string[]> }> {
     const response = await this.client.get('/processing-rules/choices/');
     return response.data;
   }
 
-  async testProcessingRule(id: number): Promise<any> {
+  async testProcessingRule(id: number): Promise<{ matched_transactions: Transaction[]; match_count: number }> {
     const response = await this.client.post(`/processing-rules/${id}/test_rule/`);
     return response.data;
   }
 
-  async applyProcessingRuleToExisting(id: number): Promise<any> {
+  async applyProcessingRuleToExisting(id: number): Promise<{ updated_count: number; affected_transactions: number[] }> {
     const response = await this.client.post(`/processing-rules/${id}/apply_to_existing/`);
     return response.data;
   }
 
-  async reorderProcessingRules(ruleIds: number[]): Promise<any> {
+  async reorderProcessingRules(ruleIds: number[]): Promise<{ success: boolean; updated_rules: ProcessingRule[] }> {
     const response = await this.client.post('/processing-rules/reorder/', { rule_ids: ruleIds });
     return response.data;
   }
 
   // Gmail Integration
-  async getGmailAccounts(): Promise<any[]> {
+  async getGmailAccounts(): Promise<GmailAccount[]> {
     const response = await this.client.get('/gmail-accounts/');
     return response.data.results || response.data;
   }
@@ -755,12 +897,12 @@ class ApiClient {
     return response.data;
   }
 
-  async handleGmailOAuthCallback(code: string, state: string): Promise<any> {
+  async handleGmailOAuthCallback(code: string, state: string): Promise<GmailAccount> {
     const response = await this.client.post('/gmail-accounts/oauth_callback/', { code, state });
     return response.data;
   }
 
-  async updateGmailAccount(id: number, data: any): Promise<any> {
+  async updateGmailAccount(id: number, data: Partial<GmailAccount>): Promise<GmailAccount> {
     const response = await this.client.patch(`/gmail-accounts/${id}/`, data);
     return response.data;
   }
@@ -769,7 +911,7 @@ class ApiClient {
     await this.client.delete(`/gmail-accounts/${id}/`);
   }
 
-  async syncGmailAccount(id: number): Promise<any> {
+  async syncGmailAccount(id: number): Promise<{ status: string; message: string }> {
     const response = await this.client.post(`/gmail-accounts/${id}/sync/`);
     return response.data;
   }
@@ -779,23 +921,23 @@ class ApiClient {
     return response.data;
   }
 
-  async getGmailSyncLogs(accountId: number): Promise<any[]> {
+  async getGmailSyncLogs(accountId: number): Promise<{ timestamp: string; level: string; message: string }[]> {
     const response = await this.client.get(`/gmail-accounts/${accountId}/sync_logs/`);
     return response.data;
   }
 
   // Email Templates
-  async getEmailTemplates(): Promise<any[]> {
+  async getEmailTemplates(): Promise<EmailTemplate[]> {
     const response = await this.client.get('/email-templates/');
     return response.data.results || response.data;
   }
 
-  async createEmailTemplate(template: any): Promise<any> {
+  async createEmailTemplate(template: Omit<EmailTemplate, 'id' | 'created_at' | 'updated_at'>): Promise<EmailTemplate> {
     const response = await this.client.post('/email-templates/', template);
     return response.data;
   }
 
-  async updateEmailTemplate(id: number, template: any): Promise<any> {
+  async updateEmailTemplate(id: number, template: Partial<EmailTemplate>): Promise<EmailTemplate> {
     const response = await this.client.patch(`/email-templates/${id}/`, template);
     return response.data;
   }
@@ -804,23 +946,23 @@ class ApiClient {
     await this.client.delete(`/email-templates/${id}/`);
   }
 
-  async getCommonEmailPatterns(): Promise<any> {
+  async getCommonEmailPatterns(): Promise<{ patterns: Partial<EmailTemplate>[]; categories: string[] }> {
     const response = await this.client.get('/email-templates/common_patterns/');
     return response.data;
   }
 
   // Extracted Transactions
-  async getExtractedTransactions(params?: any): Promise<any[]> {
+  async getExtractedTransactions(params?: Record<string, unknown>): Promise<ExtractedTransaction[]> {
     const response = await this.client.get('/extracted-transactions/', { params });
     return response.data.results || response.data;
   }
 
-  async getExtractedTransactionsSummary(): Promise<any> {
+  async getExtractedTransactionsSummary(): Promise<{ pending_count: number; approved_count: number; rejected_count: number; total_amount: string }> {
     const response = await this.client.get('/extracted-transactions/summary/');
     return response.data;
   }
 
-  async performTransactionActions(action: string, data: any): Promise<any> {
+  async performTransactionActions(action: string, data: Record<string, unknown>): Promise<{ success: boolean; message: string; affected_count?: number }> {
     const response = await this.client.post('/extracted-transactions/actions/', {
       action,
       ...data
@@ -828,50 +970,50 @@ class ApiClient {
     return response.data;
   }
 
-  async approveExtractedTransaction(id: number, data?: any): Promise<any> {
+  async approveExtractedTransaction(id: number, data?: Record<string, unknown>): Promise<{ success: boolean; transaction_id?: number; message: string }> {
     const response = await this.client.post(`/extracted-transactions/${id}/approve/`, data || {});
     return response.data;
   }
 
-  async rejectExtractedTransaction(id: number, data?: any): Promise<any> {
+  async rejectExtractedTransaction(id: number, data?: Record<string, unknown>): Promise<{ success: boolean; message: string }> {
     const response = await this.client.post(`/extracted-transactions/${id}/reject/`, data || {});
     return response.data;
   }
 
   // Gmail Sync Operations
-  async startGmailSync(data?: any): Promise<any> {
+  async startGmailSync(data?: { account_ids?: number[]; force_full_sync?: boolean }): Promise<{ status: string; message: string; sync_id?: string }> {
     const response = await this.client.post('/gmail-sync/start/', data || {});
     return response.data;
   }
 
-  async getGmailSyncStatus(): Promise<any[]> {
+  async getGmailSyncStatus(): Promise<GmailSyncStatus[]> {
     const response = await this.client.get('/gmail-sync/status/');
     return response.data;
   }
 
   // Generic HTTP methods for direct API access
-  async get(url: string, config?: any): Promise<any> {
+  async get(url: string, config?: Record<string, unknown>): Promise<unknown> {
     const response = await this.client.get(url, config);
     return response;
   }
 
-  async post(url: string, data?: any, config?: any): Promise<any> {
+  async post(url: string, data?: unknown, config?: Record<string, unknown>): Promise<unknown> {
     const response = await this.client.post(url, data, config);
     return response;
   }
 
-  async patch(url: string, data?: any, config?: any): Promise<any> {
+  async patch(url: string, data?: unknown, config?: Record<string, unknown>): Promise<unknown> {
     const response = await this.client.patch(url, data, config);
     return response;
   }
 
-  async delete(url: string, config?: any): Promise<any> {
+  async delete(url: string, config?: Record<string, unknown>): Promise<unknown> {
     const response = await this.client.delete(url, config);
     return response;
   }
 
   // Data Import/Export/User Management
-  async importTransactions(formData: FormData, importType: string): Promise<any> {
+  async importTransactions(formData: FormData, importType: string): Promise<{ success: boolean; imported_count: number; errors?: string[]; session_id?: number }> {
     const response = await this.client.post(`/transactions/import/?format=${importType}`, formData, {
       headers: {
         'Content-Type': 'multipart/form-data',

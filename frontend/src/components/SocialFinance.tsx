@@ -16,9 +16,11 @@ import {
 } from 'lucide-react';
 import { apiClient } from '../api/client';
 import { FormModal } from './FormModal';
+import { ProgressBar } from './ProgressBar';
 import { useToast } from './Toast';
 import { useAuth } from '../contexts/AuthContext';
 import { formatCurrency } from '../utils/preferences';
+import { Button } from './Button';
 import type { Contact, Account, LendingTransaction } from '../types';
 
 interface Group {
@@ -452,20 +454,22 @@ export const SocialFinance: React.FC = () => {
             </div>
           </div>
           <div className="mt-6 lg:mt-0 flex flex-col sm:flex-row gap-3">
-            <button
+            <Button
               onClick={() => setShowCreateContactModal(true)}
-              className="flex items-center justify-center px-4 py-2 bg-white dark:bg-gray-800/20 backdrop-blur-sm text-white rounded-lg hover:bg-white dark:bg-gray-800/30 transition-colors text-sm"
+              variant="ghost-white"
+              size="sm"
             >
               <User className="w-4 h-4 mr-2" />
               Add Contact
-            </button>
-            <button
+            </Button>
+            <Button
               onClick={() => activeTab === 'groups' ? setShowCreateGroupModal(true) : setShowCreateLendingModal(true)}
-              className="flex items-center justify-center px-6 py-2 bg-white dark:bg-gray-800 text-purple-600 rounded-lg hover:bg-gray-100 transition-colors font-medium text-sm shadow-md"
+              variant="primary"
+              size="sm"
             >
               <Plus className="w-4 h-4 mr-2" />
               {activeTab === 'groups' ? 'Create Group' : 'Add Transaction'}
-            </button>
+            </Button>
           </div>
         </div>
       </div>
@@ -473,28 +477,22 @@ export const SocialFinance: React.FC = () => {
       {/* Tabs */}
       <div className="border-b border-gray-200 dark:border-gray-700">
         <nav className="-mb-px flex space-x-8">
-          <button
+          <Button
             onClick={() => setActiveTab('groups')}
-            className={`py-4 px-1 border-b-2 font-medium text-sm ${
-              activeTab === 'groups'
-                ? 'border-purple-500 text-purple-600'
-                : 'border-transparent theme-text-muted hover:text-gray-700 hover:border-gray-300'
-            }`}
+            variant={activeTab === 'groups' ? 'primary' : 'ghost'}
+            className="py-4 px-1 border-b-2 font-medium text-sm"
           >
             <Users className="w-5 h-5 inline mr-2" />
             Group Expenses ({groups.length})
-          </button>
-          <button
+          </Button>
+          <Button
             onClick={() => setActiveTab('lending')}
-            className={`py-4 px-1 border-b-2 font-medium text-sm ${
-              activeTab === 'lending'
-                ? 'border-purple-500 text-purple-600'
-                : 'border-transparent theme-text-muted hover:text-gray-700 hover:border-gray-300'
-            }`}
+            variant={activeTab === 'lending' ? 'primary' : 'ghost'}
+            className="py-4 px-1 border-b-2 font-medium text-sm"
           >
             <HandHeart className="w-5 h-5 inline mr-2" />
             Lending & Borrowing ({lendingTransactions.length})
-          </button>
+          </Button>
         </nav>
       </div>
 
@@ -507,12 +505,13 @@ export const SocialFinance: React.FC = () => {
               <Users className="h-16 w-16 text-gray-300 mx-auto mb-4" />
               <h3 className="text-xl font-medium theme-text-primary mb-2">No groups yet</h3>
               <p className="theme-text-secondary mb-6">Create your first group to start splitting expenses</p>
-              <button
+              <Button
                 onClick={() => setShowCreateGroupModal(true)}
-                className="bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 transition-colors text-lg font-medium shadow-md"
+                variant="primary"
+                size="lg"
               >
                 Create Group
-              </button>
+              </Button>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -521,15 +520,16 @@ export const SocialFinance: React.FC = () => {
                   <div className="flex items-center justify-between mb-4">
                     <h3 className="text-xl font-bold text-gray-800 truncate">{group.name}</h3>
                     <div className="relative">
-                      <button
+                      <Button
                         onClick={(e) => {
                           e.stopPropagation();
                           setActiveDropdown(activeDropdown === group.id ? null : group.id);
                         }}
-                        className="p-2 theme-text-muted hover:text-gray-700 rounded-full hover:bg-gray-100 transition-colors"
+                        variant="ghost"
+                        size="icon"
                       >
                         <MoreVertical className="h-5 w-5" />
-                      </button>
+                      </Button>
                       
                       {activeDropdown === group.id && (
                         <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-10 py-1">
@@ -582,14 +582,15 @@ export const SocialFinance: React.FC = () => {
                     </div>
                   </div>
                   
-                  <button
+                  <Button
                     onClick={() => {
                       showError('Add Expense feature temporarily disabled');
                     }}
-                    className="w-full mt-6 bg-purple-100 text-purple-700 py-3 px-4 rounded-lg hover:bg-purple-200 transition-colors text-base font-medium shadow-sm"
+                    className="w-full mt-6"
+                    variant="secondary"
                   >
                     Add Expense
-                  </button>
+                  </Button>
                 </div>
               ))}
             </div>
@@ -617,12 +618,12 @@ export const SocialFinance: React.FC = () => {
                     </div>
                     <h3 className="text-xl font-medium theme-text-primary mb-2">No lending contacts yet</h3>
                     <p className="theme-text-secondary mb-4">Add a contact and create your first lending transaction</p>
-                    <button
+                    <Button
                       onClick={() => setShowCreateContactModal(true)}
-                      className="text-pink-600 hover:text-pink-700 font-medium text-base"
+                      variant="link"
                     >
                       Add your first contact
-                    </button>
+                    </Button>
                   </div>
                 ) : (
                   contactBalances.map((contact) => (
@@ -755,7 +756,7 @@ export const SocialFinance: React.FC = () => {
                                     {formatCurrency(transaction.remaining_amount, authState.user)} pending
                                   </span>
                                   {!transaction.is_fully_repaid && (
-                                    <button
+                                    <Button
                                       onClick={() => {
                                         setSelectedTransaction(transaction);
                                         setRepaymentData(prev => ({
@@ -764,10 +765,11 @@ export const SocialFinance: React.FC = () => {
                                         }));
                                         setShowRepaymentModal(true);
                                       }}
-                                      className="ml-2 text-blue-600 hover:text-blue-700 text-xs font-medium"
+                                      variant="link"
+                                      size="sm"
                                     >
                                       Record Payment
-                                    </button>
+                                    </Button>
                                   )}
                                 </>
                               )}
@@ -783,10 +785,7 @@ export const SocialFinance: React.FC = () => {
                               <span>{transaction.repayment_percentage.toFixed(1)}%</span>
                             </div>
                             <div className="w-full bg-gray-200 rounded-full h-2">
-                              <div
-                                className="bg-blue-600 h-2 rounded-full"
-                                style={{ width: `${Math.min(transaction.repayment_percentage, 100)}%` }}
-                              ></div>
+                              <ProgressBar percentage={transaction.repayment_percentage} className="bg-blue-600" />
                             </div>
                           </div>
                         )}
@@ -815,54 +814,45 @@ export const SocialFinance: React.FC = () => {
         title="Add New Contact"
       >
         <form onSubmit={handleCreateContact} className="space-y-5 p-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Name <span className="text-red-500">*</span></label>
-            <input
-              type="text"
-              value={newContact.name}
-              onChange={(e) => setNewContact(prev => ({ ...prev, name: e.target.value }))}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
-              placeholder="Contact name"
-              required
-            />
-          </div>
+          <Input
+            label="Name"
+            type="text"
+            value={newContact.name}
+            onChange={(e) => setNewContact(prev => ({ ...prev, name: e.target.value }))}
+            placeholder="Contact name"
+            required
+          />
           
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
-            <input
-              type="email"
-              value={newContact.email}
-              onChange={(e) => setNewContact(prev => ({ ...prev, email: e.target.value }))}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
-              placeholder="contact@example.com"
-            />
-          </div>
+          <Input
+            label="Email"
+            type="email"
+            value={newContact.email}
+            onChange={(e) => setNewContact(prev => ({ ...prev, email: e.target.value }))}
+            placeholder="contact@example.com"
+          />
           
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Phone</label>
-            <input
-              type="tel"
-              value={newContact.phone}
-              onChange={(e) => setNewContact(prev => ({ ...prev, phone: e.target.value }))}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
-              placeholder="+1 (555) 123-4567"
-            />
-          </div>
+          <Input
+            label="Phone"
+            type="tel"
+            value={newContact.phone}
+            onChange={(e) => setNewContact(prev => ({ ...prev, phone: e.target.value }))}
+            placeholder="+1 (555) 123-4567"
+          />
           
           <div className="flex justify-end space-x-3 pt-6 border-t border-gray-200 dark:border-gray-700">
-            <button
+            <Button
               type="button"
               onClick={() => setShowCreateContactModal(false)}
-              className="px-6 py-3 theme-text-secondary hover:text-gray-800 transition-colors font-medium rounded-lg"
+              variant="ghost"
             >
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
               type="submit"
-              className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium shadow-md"
+              variant="primary"
             >
               Add Contact
-            </button>
+            </Button>
           </div>
         </form>
       </FormModal>
@@ -878,30 +868,28 @@ export const SocialFinance: React.FC = () => {
         size="lg"
       >
         <form onSubmit={handleCreateGroup} className="space-y-5 p-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Group Name <span className="text-red-500">*</span></label>
-            <input
-              type="text"
-              value={newGroup.name}
-              onChange={handleGroupNameChange}
-              placeholder="e.g., Weekend Trip, Office Lunch, Shared Apartment"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
-              required
-            />
-          </div>
+          <Input
+            label="Group Name"
+            type="text"
+            value={newGroup.name}
+            onChange={handleGroupNameChange}
+            placeholder="e.g., Weekend Trip, Office Lunch, Shared Apartment"
+            required
+          />
+          
+          <Input
+            label="Description"
+            value={newGroup.description}
+            onChange={handleGroupDescriptionChange}
+            placeholder="Optional description of what this group is for"
+            multiline
+            rows={3}
+          />
           
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
-            <textarea
-              value={newGroup.description}
-              onChange={handleGroupDescriptionChange}
-              placeholder="Optional description of what this group is for"
-              rows={3}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
-            />
-          </div>
-          
-          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Add Members</label>
+            
+            {/* Dropdown for selecting members */}
             <label className="block text-sm font-medium text-gray-700 mb-2">Add Members</label>
             
             {/* Dropdown for selecting members */}
@@ -987,22 +975,22 @@ export const SocialFinance: React.FC = () => {
           </div>
           
           <div className="flex justify-end space-x-3 pt-6 border-t border-gray-200 dark:border-gray-700">
-            <button
+            <Button
               type="button"
               onClick={() => {
                 setShowCreateGroupModal(false);
                 setShowMemberDropdown(false);
               }}
-              className="px-6 py-3 theme-text-secondary hover:text-gray-800 transition-colors font-medium rounded-lg"
+              variant="ghost"
             >
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
               type="submit"
-              className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium shadow-md"
+              variant="primary"
             >
               Create Group
-            </button>
+            </Button>
           </div>
         </form>
       </FormModal>
@@ -1018,141 +1006,114 @@ export const SocialFinance: React.FC = () => {
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">Transaction Type <span className="text-red-500">*</span></label>
             <div className="grid grid-cols-2 gap-4">
-              <button
+              <Button
                 type="button"
                 onClick={() => setNewLendingTransaction(prev => ({ ...prev, transaction_type: 'lent' }))}
-                className={`p-4 border-2 rounded-lg text-left transition-colors duration-200 ${
-                  newLendingTransaction.transaction_type === 'lent'
-                    ? 'border-green-500 bg-green-50 shadow-md'
-                    : 'border-gray-300 hover:border-gray-400'
-                }`}
+                variant={newLendingTransaction.transaction_type === 'lent' ? 'primary' : 'secondary'}
+                className="p-4 border-2 rounded-lg text-left transition-colors duration-200"
               >
                 <div className="flex items-center mb-2">
                   <ArrowUpRight className="w-6 h-6 mr-3" />
                   <span className="font-semibold text-lg text-gray-800">Money Lent</span>
                 </div>
                 <p className="text-sm theme-text-secondary">You gave money to someone</p>
-              </button>
-              <button
+              </Button>
+              <Button
                 type="button"
                 onClick={() => setNewLendingTransaction(prev => ({ ...prev, transaction_type: 'borrowed' }))}
-                className={`p-4 border-2 rounded-lg text-left transition-colors duration-200 ${
-                  newLendingTransaction.transaction_type === 'borrowed'
-                    ? 'border-red-500 bg-red-50 shadow-md'
-                    : 'border-gray-300 hover:border-gray-400'
-                }`}
+                variant={newLendingTransaction.transaction_type === 'borrowed' ? 'primary' : 'secondary'}
+                className="p-4 border-2 rounded-lg text-left transition-colors duration-200"
               >
                 <div className="flex items-center mb-2">
                   <ArrowDownLeft className="w-6 h-6 mr-3" />
                   <span className="font-semibold text-lg text-gray-800">Money Borrowed</span>
                 </div>
                 <p className="text-sm theme-text-secondary">You received money from someone</p>
-              </button>
+              </Button>
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Contact <span className="text-red-500">*</span></label>
-              <select
+              <Select
+                label="Contact"
                 value={newLendingTransaction.contact}
                 onChange={(e) => setNewLendingTransaction(prev => ({ ...prev, contact: e.target.value }))}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
+                options={contacts.map((contact) => ({ value: contact.id, label: contact.name }))}
                 required
-              >
-                <option value="">Select a contact</option>
-                {contacts.map((contact) => (
-                  <option key={contact.id} value={contact.id}>
-                    {contact.name}
-                  </option>
-                ))}
-              </select>
+              />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Account <span className="text-red-500">*</span></label>
-              <select
+              <Select
+                label="Account"
                 value={newLendingTransaction.account}
                 onChange={(e) => setNewLendingTransaction(prev => ({ ...prev, account: e.target.value }))}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
+                options={accounts.map((account) => ({ value: account.id, label: account.name }))}
                 required
-              >
-                <option value="">Select an account</option>
-                {accounts.map((account) => (
-                  <option key={account.id} value={account.id}>
-                    {account.name}
-                  </option>
-                ))}
-              </select>
+              />
             </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Description <span className="text-red-500">*</span></label>
-            <input
-              type="text"
-              value={newLendingTransaction.description}
-              onChange={(e) => setNewLendingTransaction(prev => ({ ...prev, description: e.target.value }))}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
-              placeholder="e.g., Lunch money, Emergency loan, Trip expenses"
-              required
-            />
-          </div>
+          <Input
+            label="Description"
+            type="text"
+            value={newLendingTransaction.description}
+            onChange={(e) => setNewLendingTransaction(prev => ({ ...prev, description: e.target.value }))}
+            placeholder="e.g., Lunch money, Emergency loan, Trip expenses"
+            required
+          />
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Amount <span className="text-red-500">*</span></label>
-              <div className="relative">
-                <DollarSign className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
-                <input
-                  type="number"
-                  step="0.01"
-                  value={newLendingTransaction.amount}
-                  onChange={(e) => setNewLendingTransaction(prev => ({ ...prev, amount: e.target.value }))}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
-                  placeholder="0.00"
-                  required
-                />
-              </div>
+              <Input
+                label="Amount"
+                type="number"
+                step="0.01"
+                value={newLendingTransaction.amount}
+                onChange={(e) => setNewLendingTransaction(prev => ({ ...prev, amount: e.target.value }))}
+                placeholder="0.00"
+                required
+                icon={DollarSign}
+              />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Date <span className="text-red-500">*</span></label>
-              <input
+              <Input
+                label="Date"
                 type="date"
                 value={newLendingTransaction.date}
                 onChange={(e) => setNewLendingTransaction(prev => ({ ...prev, date: e.target.value }))}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
                 required
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Notes</label>
-            <textarea
+            <Input
+              label="Notes"
               value={newLendingTransaction.notes}
               onChange={(e) => setNewLendingTransaction(prev => ({ ...prev, notes: e.target.value }))}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
+              multiline
               rows={3}
               placeholder="Additional details about this transaction..."
             />
           </div>
 
           <div className="flex justify-end space-x-3 pt-6 border-t border-gray-200 dark:border-gray-700">
-            <button
+            <Button
               type="button"
               onClick={() => setShowCreateLendingModal(false)}
-              className="px-6 py-3 theme-text-secondary hover:text-gray-800 transition-colors font-medium rounded-lg"
+              variant="ghost"
             >
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
               type="submit"
-              className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium shadow-md"
+              variant="primary"
             >
               Add Transaction
-            </button>
+            </Button>
           </div>
         </form>
       </FormModal>
@@ -1174,20 +1135,17 @@ export const SocialFinance: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Repayment Amount <span className="text-red-500">*</span></label>
-              <div className="relative">
-                <DollarSign className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
-                <input
-                  type="number"
-                  step="0.01"
-                  value={repaymentData.amount}
-                  onChange={(e) => setRepaymentData(prev => ({ ...prev, amount: e.target.value }))}
-                  max={selectedTransaction.remaining_amount}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200"
-                  placeholder="0.00"
-                  required
-                />
-              </div>
+              <Input
+                label="Repayment Amount"
+                type="number"
+                step="0.01"
+                value={repaymentData.amount}
+                onChange={(e) => setRepaymentData(prev => ({ ...prev, amount: e.target.value }))}
+                max={selectedTransaction.remaining_amount}
+                placeholder="0.00"
+                required
+                icon={DollarSign}
+              />
             </div>
 
             <div>

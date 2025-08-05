@@ -3,6 +3,8 @@ import React, { useState } from 'react';
 import { useToast } from './Toast';
 import { apiClient } from '../api/client';
 import { Save } from 'lucide-react';
+import { Button } from './Button';
+import { Input } from './Input';
 
 const SecuritySettings: React.FC = () => {
   const { showSuccess, showError } = useToast();
@@ -63,66 +65,51 @@ const SecuritySettings: React.FC = () => {
             <h3 className="text-lg font-medium theme-text-primary">Password</h3>
             <p className="text-sm theme-text-secondary">Keep your account secure with a strong password</p>
           </div>
-          <button
+          <Button
             onClick={() => setShowPasswordChange(!showPasswordChange)}
-            className="theme-btn-outline text-sm"
+            variant="secondary"
+            size="sm"
           >
             {showPasswordChange ? 'Cancel' : 'Change Password'}
-          </button>
+          </Button>
         </div>
 
         {showPasswordChange && (
           <div className="theme-card p-6 mt-4">
             <form onSubmit={handlePasswordChange} className="space-y-4">
-            <div>
-              <label className="theme-form-label mb-2">
-                Current Password
-              </label>
-              <input
-                type="password"
-                value={passwordData.current_password}
-                onChange={(e) => setPasswordData(prev => ({ ...prev, current_password: e.target.value }))}
-                className="theme-input transition-all duration-200"
-                required
-              />
-            </div>
+            <Input
+              label="Current Password"
+              type="password"
+              value={passwordData.current_password}
+              onChange={(e) => setPasswordData(prev => ({ ...prev, current_password: e.target.value }))}
+              required
+            />
 
-            <div>
-              <label className="theme-form-label mb-2">
-                New Password
-              </label>
-              <input
-                type="password"
-                value={passwordData.new_password}
-                onChange={(e) => setPasswordData(prev => ({ ...prev, new_password: e.target.value }))}
-                className="theme-input transition-all duration-200"
-                required
-                minLength={8}
-              />
-            </div>
+            <Input
+              label="New Password"
+              type="password"
+              value={passwordData.new_password}
+              onChange={(e) => setPasswordData(prev => ({ ...prev, new_password: e.target.value }))}
+              required
+              minLength={8}
+            />
 
-            <div>
-              <label className="theme-form-label mb-2">
-                Confirm New Password
-              </label>
-              <input
-                type="password"
-                value={passwordData.confirm_password}
-                onChange={(e) => setPasswordData(prev => ({ ...prev, confirm_password: e.target.value }))}
-                className="theme-input transition-all duration-200"
-                required
-              />
-            </div>
+            <Input
+              label="Confirm New Password"
+              type="password"
+              value={passwordData.confirm_password}
+              onChange={(e) => setPasswordData(prev => ({ ...prev, confirm_password: e.target.value }))}
+              required
+            />
 
             <div className="flex justify-end">
-              <button
+              <Button
                 type="submit"
                 disabled={isLoading}
-                className="theme-btn-primary flex items-center space-x-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Save className="h-5 w-5" />
                 <span>{isLoading ? 'Updating...' : 'Update Password'}</span>
-              </button>
+              </Button>
             </div>
           </form>
           </div>

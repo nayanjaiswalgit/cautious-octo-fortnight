@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { User, Globe, Shield, Bell, RefreshCw, Settings as SettingsIcon, Mail, Download, Bot, Palette } from 'lucide-react';
+import { Button } from './Button';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from './Toast';
 import { useTheme } from '../contexts/ThemeContext';
@@ -11,6 +12,7 @@ import NotificationsSettings from './NotificationsSettings';
 import AutomationSettings from './AutomationSettings';
 import IntegrationsSettings from './IntegrationsSettings';
 import DataSettings from './DataSettings';
+import { ThemeCard } from './ThemeCard';
 
 // Subscription Management Component
 const Subscriptions = () => {
@@ -66,23 +68,23 @@ const Subscriptions = () => {
       {/* Billing Cycle Toggle */}
       <div className="flex justify-center mb-6">
         <div className="theme-bg-secondary rounded-lg p-1 flex">
-          <button
+          <Button
             onClick={() => setBillingCycle('monthly')}
-            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-              billingCycle === 'monthly' ? 'theme-bg-card shadow-sm text-blue-600 dark:text-blue-400' : 'theme-text-muted'
-            }`}
+            variant={billingCycle === 'monthly' ? 'primary' : 'ghost'}
+            size="sm"
+            className="rounded-md text-sm font-medium transition-colors"
           >
             Monthly
-          </button>
-          <button
+          </Button>
+          <Button
             onClick={() => setBillingCycle('yearly')}
-            className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-              billingCycle === 'yearly' ? 'theme-bg-card shadow-sm text-blue-600 dark:text-blue-400' : 'theme-text-muted'
-            }`}
+            variant={billingCycle === 'yearly' ? 'primary' : 'ghost'}
+            size="sm"
+            className="rounded-md text-sm font-medium transition-colors"
           >
             Yearly
             <span className="ml-1 px-1.5 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 text-xs rounded">Save 20%</span>
-          </button>
+          </Button>
         </div>
       </div>
       
@@ -119,18 +121,13 @@ const Subscriptions = () => {
                 ))}
               </ul>
               
-              <button
-                className={`w-full py-2 px-4 rounded-lg font-medium transition-colors ${
-                  currentPlan === plan.id
-                    ? 'theme-bg-secondary theme-text-muted cursor-not-allowed'
-                    : plan.recommended
-                    ? 'theme-btn-primary'
-                    : 'theme-btn-outline'
-                }`}
+              <Button
+                className="w-full"
+                variant={plan.recommended ? 'primary' : 'outline'}
                 disabled={currentPlan === plan.id}
               >
                 {currentPlan === plan.id ? 'Current Plan' : 'Select Plan'}
-              </button>
+              </Button>
             </div>
           </div>
         ))}
@@ -238,26 +235,15 @@ export const Settings = () => {
                 { value: 'dark', label: 'Dark Mode', icon: '🌙', description: 'Easy on the eyes in low light' },
                 { value: 'system', label: 'System Default', icon: '💻', description: 'Follow your device settings' },
               ].map((option) => (
-                <div
+                <ThemeCard
                   key={option.value}
-                  onClick={() => setTheme(option.value as any)}
-                  className={`theme-card p-4 cursor-pointer hover:shadow-lg transition-all duration-200 ${
-                    theme === option.value ? 'ring-2 ring-blue-500 dark:ring-blue-400' : ''
-                  }`}
-                >
-                  <div className="text-center">
-                    <div className="text-2xl mb-2">{option.icon}</div>
-                    <h4 className="font-medium theme-text-primary">{option.label}</h4>
-                    <p className="text-sm theme-text-muted mt-1">{option.description}</p>
-                    {theme === option.value && (
-                      <div className="mt-2">
-                        <span className="inline-flex items-center px-2 py-1 text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 rounded-full">
-                          ✓ Active
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                </div>
+                  value={option.value}
+                  label={option.label}
+                  icon={option.icon}
+                  description={option.description}
+                  active={theme === option.value}
+                  onClick={setTheme}
+                />
               ))}
             </div>
           </div>
@@ -284,13 +270,14 @@ export const Settings = () => {
               {tabs.map((tab) => {
                 const Icon = tab.icon;
                 return (
-                  <button
+                  <Button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
+                    variant={activeTab === tab.id ? 'primary' : 'ghost'}
                     className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 ${
                       activeTab === tab.id
-                        ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border-r-2 border-blue-500'
-                        : 'theme-text-secondary hover:theme-bg-hover hover:theme-text-primary'
+                        ? 'border-r-2 border-blue-500'
+                        : ''
                     }`}
                   >
                     <Icon className={`h-5 w-5 ${
@@ -299,7 +286,7 @@ export const Settings = () => {
                         : 'theme-text-muted'
                     }`} />
                     <span>{tab.name}</span>
-                  </button>
+                  </Button>
                 );
               })}
             </nav>
