@@ -38,7 +38,17 @@
       "Bash(set DATABASE_URL=)",
       "Bash(mv:*)",
       "Bash(git commit:*)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(git ls-tree:*)",
+      "Bash(git submodule:*)",
+      "Bash(npm:*)",
+      "Bash(start \"Backend Server\" cmd /k \"cd backend && python manage.py runserver 8000\")",
+      "Bash(start \"Frontend Server\" cmd /k \"cd frontend && npm run dev\")",
+      "Bash(echo:*)",
+      "Bash(npx vite:*)",
+      "Bash(docker:*)",
+      "Bash(del db.sqlite3)",
+      "Bash(powershell:*)"
     ],
     "deny": []
   }

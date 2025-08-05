@@ -1,9 +1,6 @@
 import React, { useState } from 'react';
 import { 
   Tag, 
-  Edit2, 
-  Trash2, 
-  Plus, 
   Search,
   Filter,
   TrendingUp,

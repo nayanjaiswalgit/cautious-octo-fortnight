@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { client } from '../api/client';
+import { apiClient } from '../api/client';
 
 export interface TagWithCount {
   name: string;
@@ -26,7 +26,7 @@ export const useTags = (): UseTagsReturn => {
     try {
       setIsLoading(true);
       setError(null);
-      const response = await client.get('/api/entities/all-tags/');
+      const response = await apiClient.get('/entities/all-tags/');
       setAllTags(response.data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch tags');
@@ -38,7 +38,7 @@ export const useTags = (): UseTagsReturn => {
 
   const addTagToEntity = useCallback(async (entityId: string, tag: string) => {
     try {
-      await client.post(`/api/entities/${entityId}/add-tag/`, { tag });
+      await apiClient.post(`/entities/${entityId}/add-tag/`, { tag });
       await refreshTags(); // Refresh to update counts
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to add tag');
@@ -48,7 +48,7 @@ export const useTags = (): UseTagsReturn => {
 
   const removeTagFromEntity = useCallback(async (entityId: string, tag: string) => {
     try {
-      await client.post(`/api/entities/${entityId}/remove-tag/`, { tag });
+      await apiClient.post(`/entities/${entityId}/remove-tag/`, { tag });
       await refreshTags(); // Refresh to update counts
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to remove tag');
@@ -58,7 +58,7 @@ export const useTags = (): UseTagsReturn => {
 
   const setEntityTags = useCallback(async (entityId: string, tags: string[]) => {
     try {
-      await client.post(`/api/entities/${entityId}/set-tags/`, { tags });
+      await apiClient.post(`/entities/${entityId}/set-tags/`, { tags });
       await refreshTags(); // Refresh to update counts
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to set tags');
@@ -68,7 +68,7 @@ export const useTags = (): UseTagsReturn => {
 
   const getEntitiesByTag = useCallback(async (tag: string) => {
     try {
-      const response = await client.get(`/api/entities/by-tag/?tag=${encodeURIComponent(tag)}`);
+      const response = await apiClient.get(`/entities/by-tag/?tag=${encodeURIComponent(tag)}`);
       return response.data;
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch entities by tag');
